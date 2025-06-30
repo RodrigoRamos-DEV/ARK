@@ -19,7 +19,7 @@ function doGet(e) {
     case 'BoasVindas': // Adicionamos o case explícito para a nova página
       template = HtmlService.createTemplateFromFile('BoasVindas.html');
       break;
-    case 'index': // A página do Dashboard continua a existir
+    case 'index': // A página do Dashboard (Controle Financeiro) continua a existir
       template = HtmlService.createTemplateFromFile('Index.html');
       break;
     case 'register':
@@ -241,6 +241,7 @@ function getDadosFuncionario(nomeFuncionario) {
     const gastos = [];
 
     data.forEach((linha, index) => {
+      // Vendas: Colunas A-G
       if (linha[0] && linha[0] instanceof Date) {
         vendas.push({
           id: `venda_${index}`, data: linha[0].toISOString(), quantidade: linha[1],
@@ -248,10 +249,12 @@ function getDadosFuncionario(nomeFuncionario) {
           valorTotal: linha[5], status: linha[6]
         });
       }
+      // Gastos: Colunas I-O
       if (linha[8] && linha[8] instanceof Date) {
         gastos.push({
           id: `gasto_${index}`, data: linha[8].toISOString(), quantidade: linha[9],
-          insumo: linha[10], valor: linha[11], valorTotal: linha[12], status: linha[13]
+          insumo: linha[10], valor: linha[11], valorTotal: linha[12], status: linha[13],
+          fornecedor: linha[14]
         });
       }
     });
@@ -285,7 +288,7 @@ function salvarLancamentos(nomeFuncionario, dados) {
     
     const dadosParaSalvar = [];
     for (let i = 0; i < maxLinhas; i++) {
-      const linha = new Array(14).fill(null);
+      const linha = new Array(15).fill(null); // 15 colunas de A a O
       if (vendas[i]) {
         linha[0] = new Date(vendas[i].data);
         linha[1] = vendas[i].quantidade || null;
@@ -302,12 +305,13 @@ function salvarLancamentos(nomeFuncionario, dados) {
         linha[11] = gastos[i].valor || null;
         linha[12] = gastos[i].valorTotal || null;
         linha[13] = gastos[i].status || null;
+        linha[14] = gastos[i].fornecedor || null;
       }
       dadosParaSalvar.push(linha);
     }
 
     if (dadosParaSalvar.length > 0) {
-      aba.getRange(2, 1, dadosParaSalvar.length, 14).setValues(dadosParaSalvar);
+      aba.getRange(2, 1, dadosParaSalvar.length, 15).setValues(dadosParaSalvar);
     }
     
     cache.remove(`dados_func_${nomeFuncionario}`);
@@ -319,7 +323,7 @@ function salvarLancamentos(nomeFuncionario, dados) {
   }
 }
 
-const COLUNAS_CADASTRO = { 'produto': 1, 'comprador': 2, 'insumo': 3 };
+const COLUNAS_CADASTRO = { 'produto': 1, 'comprador': 2, 'insumo': 3, 'fornecedor': 4 };
 
 function getDadosCadastro() {
   const cacheKey = 'dados_cadastro';
@@ -334,7 +338,8 @@ function getDadosCadastro() {
     const dados = {
       produtos: lastRow > 1 ? aba.getRange(2, COLUNAS_CADASTRO.produto, lastRow - 1).getValues().flat().filter(String) : [],
       compradores: lastRow > 1 ? aba.getRange(2, COLUNAS_CADASTRO.comprador, lastRow - 1).getValues().flat().filter(String) : [],
-      insumos: lastRow > 1 ? aba.getRange(2, COLUNAS_CADASTRO.insumo, lastRow - 1).getValues().flat().filter(String) : []
+      insumos: lastRow > 1 ? aba.getRange(2, COLUNAS_CADASTRO.insumo, lastRow - 1).getValues().flat().filter(String) : [],
+      fornecedores: lastRow > 1 ? aba.getRange(2, COLUNAS_CADASTRO.fornecedor, lastRow - 1).getValues().flat().filter(String) : []
     };
     putInCache(cacheKey, dados);
     return dados;
@@ -349,9 +354,12 @@ function adicionarItem(tipo, valor) {
     const coluna = COLUNAS_CADASTRO[tipo];
     if (!coluna) throw new Error("Tipo de cadastro inválido.");
     const aba = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(NOME_ABA_DADOS);
-    const novaLinha = new Array(Object.keys(COLUNAS_CADASTRO).length).fill('');
-    novaLinha[coluna - 1] = valor;
-    aba.appendRow(novaLinha);
+
+    const todosOsValoresDaColuna = aba.getRange(1, coluna, aba.getMaxRows()).getValues();
+    const ultimaLinhaComConteudo = todosOsValoresDaColuna.filter(String).length;
+    const proximaLinhaVazia = ultimaLinhaComConteudo + 1;
+
+    aba.getRange(proximaLinhaVazia, coluna).setValue(valor);
 
     cache.remove('dados_cadastro');
     cache.remove('dados_iniciais_dashboard');
@@ -459,6 +467,7 @@ function getDadosIniciais() {
   const produtosSet = new Set(dadosCadastrados.produtos || []);
   const insumosSet = new Set(dadosCadastrados.insumos || []);
   const compradoresSet = new Set(dadosCadastrados.compradores || []);
+  const fornecedoresSet = new Set(dadosCadastrados.fornecedores || []);
   const statusSet = new Set();
   const abasParaIgnorar = [NOME_ABA_MODELO, NOME_ABA_DADOS, NOME_ABA_USUARIOS];
 
@@ -480,17 +489,22 @@ function getDadosIniciais() {
       let dataGasto = linha[8];
       if (dataGasto && typeof dataGasto.getMonth === 'function') {
         const statusGasto = linha[13];
-        transacoes.push({ funcionario: nomeDaAba, tipo: 'gasto', data: dataGasto.toISOString(), quantidade: linha[9], insumo: linha[10], valorUnitario: linha[11], valorTotal: linha[12], status: statusGasto });
+        transacoes.push({ funcionario: nomeDaAba, tipo: 'gasto', data: dataGasto.toISOString(), quantidade: linha[9], insumo: linha[10], valorUnitario: linha[11], valorTotal: linha[12], status: statusGasto, fornecedor: linha[14] });
         if (statusGasto) statusSet.add(statusGasto);
       }
     }
   }
-  const resultado = { transacoes, funcionarios: [...funcionariosSet], produtos: [...produtosSet], insumos: [...insumosSet], compradores: [...compradoresSet], status: [...statusSet] };
+  const resultado = { transacoes, funcionarios: [...funcionariosSet], produtos: [...produtosSet], insumos: [...insumosSet], compradores: [...compradoresSet], fornecedores: [...fornecedoresSet], status: [...statusSet] };
   putInCache(cacheKey, resultado);
   return resultado;
 }
 
+// ===== FUNÇÃO CORRIGIDA =====
 function gerarPaginaDeFechamento(dadosFiltrados, nomeFuncionarioSelecionado, nomeCompradorSelecionado, tipoDeVisualizacaoAtual, nomeCliente) {
+  
+  // Adiciona a ordenação por data aqui
+  dadosFiltrados.sort((a, b) => new Date(a.data) - new Date(b.data));
+
   let totalGanhos = 0;
   let totalGastos = 0;
   const dadosDeVendas = dadosFiltrados.filter(item => item.tipo === 'venda');
@@ -502,7 +516,6 @@ function gerarPaginaDeFechamento(dadosFiltrados, nomeFuncionarioSelecionado, nom
   let cabecalhoTabela;
   let linhasTabela;
 
-  // Lógica para gerar as linhas e cabeçalhos da tabela (sem alterações)
   if (nomeFuncionarioSelecionado === 'TODOS' && nomeCompradorSelecionado !== 'TODOS') {
     tituloRelatorio = 'Relatório de Fechamento - Comprador: ' + nomeCompradorSelecionado;
     cabecalhoTabela = '<tr><th>Data</th><th>Quantidade</th><th>Produto</th><th>Valor Unitário</th><th>Valor Total</th><th>Funcionário</th></tr>';
@@ -518,18 +531,18 @@ function gerarPaginaDeFechamento(dadosFiltrados, nomeFuncionarioSelecionado, nom
       cabecalhoTabela = `<tr><th>Data</th>${cabecalhoFuncionario}<th>Tipo</th><th>Produto</th><th>Comprador</th><th>Valor Unitário</th><th>Valor Total</th><th>Status</th></tr>`;
       linhasTabela = dadosDeVendas.map(item => `<tr><td>${new Date(item.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</td>${celulaFuncionario(item)}<td>Venda</td><td>${item.produto || ''}</td><td>${item.comprador || ''}</td><td>${(Number(item.valorUnitario) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td><td style="color:green;">${(Number(item.valorTotal) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td><td>${item.status || ''}</td></tr>`).join('');
     } else if (tipoDeVisualizacaoAtual === 'GASTOS') {
-      cabecalhoTabela = `<tr><th>Data</th>${cabecalhoFuncionario}<th>Tipo</th><th>Insumo</th><th>Valor Unitário</th><th>Valor Total</th><th>Status</th></tr>`;
-      linhasTabela = dadosDeGastos.map(item => `<tr><td>${new Date(item.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</td>${celulaFuncionario(item)}<td>Gasto</td><td>${item.insumo || ''}</td><td>${(Number(item.valorUnitario) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td><td style="color:red;">${(Number(item.valorTotal) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td><td>${item.status || ''}</td></tr>`).join('');
+      cabecalhoTabela = `<tr><th>Data</th>${cabecalhoFuncionario}<th>Tipo</th><th>Insumo</th><th>Fornecedor</th><th>Valor Unitário</th><th>Valor Total</th><th>Status</th></tr>`;
+      linhasTabela = dadosDeGastos.map(item => `<tr><td>${new Date(item.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</td>${celulaFuncionario(item)}<td>Gasto</td><td>${item.insumo || ''}</td><td>${item.fornecedor || ''}</td><td>${(Number(item.valorUnitario) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td><td style="color:red;">${(Number(item.valorTotal) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td><td>${item.status || ''}</td></tr>`).join('');
     } else {
-      cabecalhoTabela = `<tr><th>Data</th>${cabecalhoFuncionario}<th>Tipo</th><th>Descrição</th><th>Comprador/Insumo</th><th>Valor Unitário</th><th>Valor Total</th><th>Status</th></tr>`;
+      cabecalhoTabela = `<tr><th>Data</th>${cabecalhoFuncionario}<th>Tipo</th><th>Descrição</th><th>Comprador/Fornecedor</th><th>Valor Unitário</th><th>Valor Total</th><th>Status</th></tr>`;
       linhasTabela = dadosFiltrados.map(item => {
         let valorUnitarioOuNaoAplicavel = (item.valorUnitario !== undefined && item.valorUnitario !== null) ? (Number(item.valorUnitario) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '-';
-        return `<tr><td>${new Date(item.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</td>${celulaFuncionario(item)}<td>${item.tipo === 'venda' ? 'Venda' : 'Gasto'}</td><td>${item.tipo === 'venda' ? (item.produto || '') : (item.insumo || '')}</td><td>${item.tipo === 'venda' ? (item.comprador || '') : (item.insumo || '')}</td><td>${valorUnitarioOuNaoAplicavel}</td><td style="color:${item.tipo === 'venda' ? 'green' : 'red'};">${(Number(item.valorTotal) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td><td>${item.status || ''}</td></tr>`;
+        let compradorOuFornecedor = item.tipo === 'venda' ? (item.comprador || '') : (item.fornecedor || '');
+        return `<tr><td>${new Date(item.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</td>${celulaFuncionario(item)}<td>${item.tipo === 'venda' ? 'Venda' : 'Gasto'}</td><td>${item.tipo === 'venda' ? (item.produto || '') : (item.insumo || '')}</td><td>${compradorOuFornecedor}</td><td>${valorUnitarioOuNaoAplicavel}</td><td style="color:${item.tipo === 'venda' ? 'green' : 'red'};">${(Number(item.valorTotal) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td><td>${item.status || ''}</td></tr>`;
       }).join('');
     }
   }
 
-  // NOVO: Geração do HTML da página com o novo cabeçalho
   const logoUrl = "https://i.postimg.cc/Qd98gFMF/Sistema-ARK.webp";
   const telefoneContato = "(22) 98847-2248";
 

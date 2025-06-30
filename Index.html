@@ -3,7 +3,7 @@
   <head>
     <base target="_top">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Roça</title>
+    <title>Controle Financeiro</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <style>
       :root {
@@ -36,144 +36,65 @@
       .ganhos { color: #16a34a; } .gastos { color: #dc2626; } .saldo { color: var(--cor-primaria); }
       .graficos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
       .error { color: #dc2626; font-weight: bold; }
-      nav { display: flex; align-items: center; gap: 20px; }
-      nav a { color: var(--cor-primaria); font-weight: bold; text-decoration: none; cursor: pointer; }
-      nav a.logout { color: #dc2626; }
       #toast-notification { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 2000; left: 50%; transform: translateX(-50%); bottom: 30px; opacity: 0; transition: visibility 0.5s, opacity 0.5s linear; }
       #toast-notification.show { visibility: visible; opacity: 1; }
       #toast-notification.success { background-color: #16a34a; }
       #toast-notification.error { background-color: #dc2626; }
       #toast-notification.info { background-color: #3b82f6; }
       @media (max-width: 900px) { .graficos-grid { grid-template-columns: 1fr; } }
+
+      body { padding-top: 70px; }
+      .main-navbar { display: flex; justify-content: space-between; align-items: center; gap: 20px; background-color: #6d28d9; padding: 10px 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); position: fixed; top: 0; left: 0; width: 100%; z-index: 1001; box-sizing: border-box; }
+      .navbar-left, .navbar-right { flex: 1; }
+      .navbar-center { flex: 2; display: flex; justify-content: center; gap: 15px; }
+      .navbar-right { display: flex; justify-content: flex-end; }
+      .navbar-logo { height: 45px; width: auto; }
+      .main-navbar .nav-button { background-color: transparent; color: white; border: 2px solid transparent; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 1em; cursor: pointer; transition: all 0.2s; text-decoration: none; white-space: nowrap; }
+      .main-navbar .nav-button:hover { background-color: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.5); }
+      .main-navbar .nav-button.logout { background-color: rgba(220, 38, 38, 0.7); }
+      .main-navbar .nav-button.logout:hover { background-color: #dc2626; border-color: transparent; }
     </style>
   </head>
   <body>
-    <style>
-    body {
-        padding-top: 70px; 
-    }
-    .main-navbar {
-        display: flex;
-        justify-content: space-between; /* Alinha os 3 blocos (esquerda, centro, direita) */
-        align-items: center;
-        gap: 20px;
-        background-color: #6d28d9;
-        padding: 10px 20px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        z-index: 1001;
-        box-sizing: border-box;
-    }
-    /* Blocos da navbar */
-    .navbar-left, .navbar-right {
-        flex: 1;
-    }
-    .navbar-center {
-        flex: 2;
-        display: flex;
-        justify-content: center;
-        gap: 15px;
-    }
-    .navbar-right {
-        display: flex;
-        justify-content: flex-end;
-    }
+    
+    <nav class="main-navbar">
+        <div class="navbar-left">
+             <img src="https://i.postimg.cc/Qd98gFMF/Sistema-ARK.webp" alt="Logo" class="navbar-logo">
+        </div>
+        <div class="navbar-center">
+            <a href="javascript:void(0);" onclick="navigateToNavbar('BoasVindas')" class="nav-button">Início</a>
+            <a href="javascript:void(0);" onclick="navigateToNavbar('index')" class="nav-button">Controle Financeiro</a>
+            <a href="javascript:void(0);" onclick="navigateToNavbar('lancamentos')" class="nav-button">Lançamentos</a>
+            <a href="javascript:void(0);" onclick="navigateToNavbar('cadastro')" class="nav-button">Cadastro</a>
+        </div>
+        <div class="navbar-right">
+            <a href="javascript:void(0);" onclick="handleLogoutNavbar()" class="nav-button logout">Sair</a>
+        </div>
+    </nav>
 
-    /* Estilo da Logo */
-    .navbar-logo {
-        height: 45px;
-        width: auto;
-    }
-
-    /* Estilo dos Botões */
-    .main-navbar .nav-button {
-        background-color: transparent;
-        color: white;
-        border: 2px solid transparent;
-        padding: 8px 16px;
-        border-radius: 6px;
-        font-weight: bold;
-        font-size: 1em;
-        cursor: pointer;
-        transition: all 0.2s;
-        text-decoration: none;
-        white-space: nowrap; /* Impede que o texto quebre linha */
-    }
-    .main-navbar .nav-button:hover {
-        background-color: rgba(255, 255, 255, 0.1);
-        border-color: rgba(255, 255, 255, 0.5);
-    }
-    .main-navbar .nav-button.logout {
-        background-color: rgba(220, 38, 38, 0.7);
-    }
-    .main-navbar .nav-button.logout:hover {
-        background-color: #dc2626;
-        border-color: transparent;
-    }
-</style>
-
-<nav class="main-navbar">
-    <div class="navbar-left">
-         <img src="https://i.postimg.cc/Qd98gFMF/Sistema-ARK.webp" alt="Logo" class="navbar-logo">
-    </div>
-    <div class="navbar-center">
-        <a href="javascript:void(0);" onclick="navigateToNavbar('BoasVindas')" class="nav-button">Início</a>
-        <a href="javascript:void(0);" onclick="navigateToNavbar('index')" class="nav-button">Dashboard</a>
-        <a href="javascript:void(0);" onclick="navigateToNavbar('lancamentos')" class="nav-button">Lançamentos</a>
-        <a href="javascript:void(0);" onclick="navigateToNavbar('cadastro')" class="nav-button">Cadastro</a>
-    </div>
-    <div class="navbar-right">
-        <a href="javascript:void(0);" onclick="handleLogoutNavbar()" class="nav-button logout">Sair</a>
-    </div>
-</nav>
-
-<script>
-    // Funções de navegação específicas para a Navbar, para evitar conflitos
-    function navigateToNavbar(page) {
-        // Esta linha pega o URL base da aplicação
-        const url = '<?= getScriptUrl() ?>';
-        // E aqui montamos o link corretamente
-        window.top.location.href = url + "?page=" + page;
-    }
-    function handleLogoutNavbar() {
-        const url = '<?= getScriptUrl() ?>';
-        localStorage.removeItem('isLoggedIn');
-        window.top.location.href = url + "?page=login";
-    }
-</script>
-
-<script>
-    function navbar_navigateTo(page) {
-        let url = '<?= getScriptUrl() ?>';
-        // Redireciona para 'index' sem o '?page=index' para uma URL mais limpa
-        if (page === 'index') {
-            window.top.location.href = url;
-        } else {
-            window.top.location.href = url + "?page=" + page;
+    <script>
+        function navigateToNavbar(page) {
+            const baseUrl = '<?= getScriptUrl() ?>';
+            window.top.location.href = baseUrl + "?page=" + page;
         }
-    }
-    function navbar_handleLogout() {
-        let url = '<?= getScriptUrl() ?>';
-        localStorage.removeItem('isLoggedIn');
-        window.top.location.href = url + "?page=login";
-    }
-</script>
+        function handleLogoutNavbar() {
+            const baseUrl = '<?= getScriptUrl() ?>';
+            localStorage.removeItem('isLoggedIn');
+            window.top.location.href = baseUrl + "?page=login";
+        }
+    </script>
     
     <div id="loading">Autenticando...</div>
 
      <div id="access-denied">
         <h2>Acesso Negado</h2>
         <p>Você precisa fazer o login para acessar esta página.</p>
-        <button class="btn" onclick="navigateTo('login')">Ir para o Login</button>
+        <button class="btn" onclick="navigateToNavbar('login')">Ir para o Login</button>
     </div>
 
     <div class="container" id="main-container">
         <header>
             <h1>Sistemas ARK</h1>
-           
         </header>
       
         <div class="card">
@@ -195,6 +116,7 @@
             <div class="filtro-item" id="filtro-produto"><label for="produtoFiltro">Produto</label><select id="produtoFiltro"></select></div>
             <div class="filtro-item" id="filtro-comprador"><label for="compradorFiltro">Comprador</label><select id="compradorFiltro"></select></div>
             <div class="filtro-item" id="filtro-insumo"><label for="insumoFiltro">Insumo</label><select id="insumoFiltro"></select></div>
+            <div class="filtro-item" id="filtro-fornecedor"><label for="fornecedorFiltro">Fornecedor</label><select id="fornecedorFiltro"></select></div>
             <div class="filtro-item" id="filtro-status"><label for="statusFiltro">Status</label><select id="statusFiltro"></select></div>
             <div class="filtro-item"><label>&nbsp;</label><button id="gerarPdfBtn">Gerar Fechamento</button></div>
           </div>
@@ -216,8 +138,6 @@
     <div id="toast-notification"></div>
 
     <script>
-        let scriptUrl = '<?= getScriptUrl() ?>';
-
         window.addEventListener('load', () => {
             if (localStorage.getItem('isLoggedIn') !== 'true') {
                 document.getElementById('loading').style.display = 'none';
@@ -229,15 +149,6 @@
             document.getElementById('main-container').style.display = 'block';
             iniciarDashboard();
         });
-
-        function navigateTo(page) {
-            window.top.location.href = scriptUrl + `?page=${page}`;
-        }
-        
-        function handleLogout() {
-            localStorage.removeItem('isLoggedIn');
-            window.top.location.replace(scriptUrl + '?page=login');
-        }
         
         function showToast(message, type = 'info', duration = 3000) {
             const toast = document.getElementById('toast-notification');
@@ -254,6 +165,7 @@
         let todosOsProdutosGlobais = [];
         let todosOsInsumosGlobais = [];
         let todosOsCompradoresGlobais = [];
+        let todosOsFornecedoresGlobais = [];
         let todosOsStatusGlobais = [];
 
         function iniciarDashboard() {
@@ -283,11 +195,13 @@
             todosOsProdutosGlobais = dadosIniciais.produtos;
             todosOsInsumosGlobais = dadosIniciais.insumos;
             todosOsCompradoresGlobais = dadosIniciais.compradores;
+            todosOsFornecedoresGlobais = dadosIniciais.fornecedores;
             todosOsStatusGlobais = [...new Set(dadosIniciais.status)];
             
             popularDropdown('produtoFiltro', todosOsProdutosGlobais, 'Todos os Produtos');
             popularDropdown('insumoFiltro', todosOsInsumosGlobais, 'Todos os Insumos');
             popularDropdown('compradorFiltro', todosOsCompradoresGlobais, 'Todos os Compradores');
+            popularDropdown('fornecedorFiltro', todosOsFornecedoresGlobais, 'Todos os Fornecedores');
             popularDropdown('statusFiltro', todosOsStatusGlobais, 'Todos os Status');
             
             atualizarDashboard();
@@ -315,6 +229,7 @@
             document.getElementById('filtro-produto').style.display = (tipoDeVisualizacao === 'GASTOS') ? 'none' : 'flex';
             document.getElementById('filtro-comprador').style.display = (tipoDeVisualizacao === 'GASTOS') ? 'none' : 'flex';
             document.getElementById('filtro-insumo').style.display = (tipoDeVisualizacao === 'VENDAS') ? 'none' : 'flex';
+            document.getElementById('filtro-fornecedor').style.display = (tipoDeVisualizacao === 'VENDAS') ? 'none' : 'flex';
         }
 
         function atualizarFiltrosCascata() {
@@ -324,10 +239,12 @@
             let produtos = [...new Set(dadosBase.filter(d => d.tipo === 'venda' && d.produto).map(d => d.produto))];
             let insumos = [...new Set(dadosBase.filter(d => d.tipo === 'gasto' && d.insumo).map(d => d.insumo))];
             let compradores = [...new Set(dadosBase.filter(d => d.tipo === 'venda' && d.comprador).map(d => d.comprador))];
+            let fornecedores = [...new Set(dadosBase.filter(d => d.tipo === 'gasto' && d.fornecedor).map(d => d.fornecedor))];
             
             popularDropdown('produtoFiltro', produtos, 'Todos os Produtos');
             popularDropdown('insumoFiltro', insumos, 'Todos os Insumos');
             popularDropdown('compradorFiltro', compradores, 'Todos os Compradores');
+            popularDropdown('fornecedorFiltro', fornecedores, 'Todos os Fornecedores');
         }
 
         function atualizarDashboard(event) {
@@ -346,6 +263,7 @@
             const produtoFiltro = document.getElementById('produtoFiltro').value;
             const insumoFiltro = document.getElementById('insumoFiltro').value;
             const compFiltro = document.getElementById('compradorFiltro').value;
+            const fornecedorFiltro = document.getElementById('fornecedorFiltro').value;
             const statusFiltro = document.getElementById('statusFiltro').value;
 
             dadosFiltrados = todosOsDados.filter(d => {
@@ -359,6 +277,7 @@
                 if (compFiltro !== 'TODOS' && d.comprador !== compFiltro) return false;
               } else if (d.tipo === 'gasto') {
                 if (insumoFiltro !== 'TODOS' && d.insumo !== insumoFiltro) return false;
+                if (fornecedorFiltro !== 'TODOS' && d.fornecedor !== fornecedorFiltro) return false;
               }
               if (statusFiltro !== 'TODOS' && d.status !== statusFiltro) return false;
               return true;
@@ -426,37 +345,33 @@
         }
 
         function gerarFechamento() {
-    if (dadosFiltrados.length === 0) {
-        showToast('Não há dados para gerar o relatório.', 'error');
-        return;
-    }
-    const nomeFuncionario = document.getElementById('funcSelect').value;
-    const nomeComprador = document.getElementById('compradorFiltro').value; 
-    
-    // NOVO: Captura o nome do cliente a partir do H1 principal
-    const nomeCliente = document.querySelector('.container > header h1').textContent;
+            if (dadosFiltrados.length === 0) {
+                showToast('Não há dados para gerar o relatório.', 'error');
+                return;
+            }
+            const nomeFuncionario = document.getElementById('funcSelect').value;
+            const nomeComprador = document.getElementById('compradorFiltro').value; 
+            const nomeCliente = document.querySelector('.container > header h1').textContent;
+            const dadosParaEnviar = dadosFiltrados.map(d => ({...d, data: d.data.toISOString()}));
 
-    const dadosParaEnviar = dadosFiltrados.map(d => ({...d, data: d.data.toISOString()}));
-
-    document.getElementById('gerarPdfBtn').disabled = true;
-    document.getElementById('gerarPdfBtn').textContent = 'Gerando...';
-    google.script.run
-        .withSuccessHandler(htmlRelatorio => {
-            const blob = new Blob([htmlRelatorio], {type: 'text/html; charset=utf-8'});
-            const url = URL.createObjectURL(blob);
-            window.open(url, '_blank');
-            showToast('Relatório gerado com sucesso!', 'success', 5000);
-            document.getElementById('gerarPdfBtn').disabled = false;
-            document.getElementById('gerarPdfBtn').textContent = 'Gerar Fechamento';
-        })
-        .withFailureHandler((err) => {
-            showToast('Falha ao gerar o relatório: ' + err.message, 'error');
-            document.getElementById('gerarPdfBtn').disabled = false;
-            document.getElementById('gerarPdfBtn').textContent = 'Gerar Fechamento';
-        })
-        // NOVO: Envia o nome do cliente como um novo argumento
-        .gerarPaginaDeFechamento(dadosParaEnviar, nomeFuncionario, nomeComprador, tipoDeVisualizacao, nomeCliente); 
-}
+            document.getElementById('gerarPdfBtn').disabled = true;
+            document.getElementById('gerarPdfBtn').textContent = 'Gerando...';
+            google.script.run
+                .withSuccessHandler(htmlRelatorio => {
+                    const blob = new Blob([htmlRelatorio], {type: 'text/html; charset=utf-8'});
+                    const url = URL.createObjectURL(blob);
+                    window.open(url, '_blank');
+                    showToast('Relatório gerado com sucesso!', 'success', 5000);
+                    document.getElementById('gerarPdfBtn').disabled = false;
+                    document.getElementById('gerarPdfBtn').textContent = 'Gerar Fechamento';
+                })
+                .withFailureHandler((err) => {
+                    showToast('Falha ao gerar o relatório: ' + err.message, 'error');
+                    document.getElementById('gerarPdfBtn').disabled = false;
+                    document.getElementById('gerarPdfBtn').textContent = 'Gerar Fechamento';
+                })
+                .gerarPaginaDeFechamento(dadosParaEnviar, nomeFuncionario, nomeComprador, tipoDeVisualizacao, nomeCliente); 
+        }
     </script>
   </body>
 </html>

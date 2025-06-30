@@ -9,205 +9,123 @@
             --cor-primaria: #6d28d9; --cor-destaque: #8b5cf6; --cor-fundo: #f5f3f7; --cor-card: #ffffff;
             --cor-texto: #333; --sombra-card: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
             --cor-erro: #dc2626;
+            --cor-sucesso: #16a34a;
         }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-image: linear-gradient(to top, #f2f2f7, #e9e4f0); color: var(--cor-texto); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         #loading { text-align: center; padding-top: 20vh; font-size: 1.2em; color: var(--cor-primaria); font-weight: bold; }
         .container { width: 100%; max-width: 900px; display: none; }
-        header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 20px; padding: 0 10px; }
-        h1 { color: var(--cor-primaria); margin: 0; }
-        .card { background-color: var(--cor-card); border-radius: 12px; box-shadow: var(--sombra-card); padding: 25px; margin-bottom: 25px; }
-        .grid-cadastro { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; }
-        .form-cadastro { display: flex; gap: 10px; margin-bottom: 15px; }
-        input, select { flex-grow: 1; min-width: 0; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; box-sizing: border-box; }
-        .btn { background-color: var(--cor-primaria); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; transition: background-color 0.2s; }
-        .btn-danger { background-color: var(--cor-erro); }
-        .btn:disabled { background-color: #9ca3af; cursor: not-allowed; }
-        .form-cadastro .btn { flex-shrink: 0; }
-        .btn:hover:not(:disabled) { background-color: var(--cor-destaque); }
-        .lista-itens { list-style: none; padding: 0; max-height: 300px; overflow-y: auto; border-top: 1px solid #eee; }
-        li { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
-        li:nth-child(odd) { background-color: #f9f8fa; }
-        .item-acoes button { background: none; border: none; cursor: pointer; padding: 5px; opacity: 0.6; font-size: 16px; }
-        .item-acoes button:hover { opacity: 1; color: var(--cor-primaria); }
-        nav { display: flex; gap: 20px; }
-        nav a { color: var(--cor-primaria); font-weight: bold; text-decoration: none; cursor: pointer; }
-        nav a.logout { color: #dc2626; }
-        .loader { text-align: center; padding: 20px; color: #999; }
+
+        .botoes-gerenciamento { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 20px; }
+        .btn-gerenciar { background-color: var(--cor-card); color: var(--cor-primaria); border: 1px solid var(--cor-primaria); padding: 25px; border-radius: 12px; cursor: pointer; transition: all 0.2s; font-size: 1.2em; font-weight: bold; box-shadow: var(--sombra-card); }
+        .btn-gerenciar:hover { background-color: var(--cor-primaria); color: white; transform: translateY(-3px); box-shadow: 0 8px 15px -3px rgba(0,0,0,0.15); }
+        
         #access-denied { display: none; text-align: center; padding-top: 20vh; }
-      #access-denied h2 { font-size: 1.2em; color: var(--cor-primaria); font-weight: bold; }
-      #access-denied p { color: #333; }
-      .btn { background-color: var(--cor-primaria); color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-size: 1.1em; font-weight: bold; transition: background-color 0.2s; }
+        #access-denied h2 { font-size: 1.2em; color: var(--cor-primaria); font-weight: bold; }
       
+        /* Estilos do Modal Principal */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-box { background: white; padding: 25px; border-radius: 12px; width: 95%; max-width: 600px; max-height: 90vh; display: flex; flex-direction: column; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
+        .modal-header h2 { margin: 0; color: var(--cor-primaria); }
+        .modal-header .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #888; }
+        .modal-body { overflow-y: auto; padding-right: 15px; }
+        .modal-footer { margin-top: 20px; display: flex; justify-content: flex-end; }
+        .btn-secundario { background-color: #e5e7eb; color: #374151; border: 1px solid #ccc; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+
+        /* Estilos do Conteúdo do Modal */
+        .form-add-item { display: flex; gap: 10px; margin-bottom: 20px; }
+        .form-add-item input { flex-grow: 1; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; }
+        .btn-add { background-color: var(--cor-primaria); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .lista-gerenciamento { list-style: none; padding: 0; }
+        .lista-gerenciamento li { display: flex; justify-content: space-between; align-items: center; padding: 12px 5px; border-bottom: 1px solid #eee; }
+        .item-acoes button { background: none; border: none; cursor: pointer; padding: 5px; opacity: 0.6; font-size: 16px; margin-left: 8px; }
+        .item-acoes button:hover { opacity: 1; }
+        .loader { text-align: center; padding: 20px; color: #999; }
+        .form-gerenciar-func { display: flex; flex-direction: column; gap: 15px; }
+        .form-gerenciar-func .form-group { display: flex; gap: 10px; }
+        .form-gerenciar-func input, .form-gerenciar-func select { flex-grow: 1; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; }
+        .btn-danger { background-color: var(--cor-erro); }
+
+        /* Estilos do Modal de Confirmação (existente) */
         .modal-overlay-hidden { display: none !important; }
-        #custom-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        #custom-modal-box { background: var(--cor-card); padding: 25px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); width: 90%; max-width: 450px; text-align: center; }
-        #custom-modal-title { margin-top: 0; color: var(--cor-primaria); font-size: 1.4em; }
-        #custom-modal-body input { width: 100%; box-sizing: border-box; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; margin-top: 10px; }
-        #custom-modal-footer { margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px; }
-        .btn-secundario { background-color: #e5e7eb; color: #374151; border: 1px solid #ccc; padding: 10px 15px; border-radius: 6px; cursor: pointer; }
-         #access-denied { display: none; text-align: center; padding-top: 20vh; font-size: 1.2em; color: var(--cor-primaria); font-weight: bold; }
-      #access-denied p { color: #333; }
-      .btn { background-color: var(--cor-primaria); color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-size: 1.1em; font-weight: bold; }
-    
+        #custom-modal-overlay { z-index: 1001; }
+        
+        /* Estilo do Toast Notification */
+        #toast-notification { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 2000; left: 50%; transform: translateX(-50%); bottom: 30px; opacity: 0; transition: visibility 0.5s, opacity 0.5s linear; }
+        #toast-notification.show { visibility: visible; opacity: 1; }
+        #toast-notification.success { background-color: var(--cor-sucesso); }
+        #toast-notification.error { background-color: var(--cor-erro); }
+        
+        /* Estilo da Navbar */
+        body { padding-top: 70px; }
+        .main-navbar { display: flex; justify-content: space-between; align-items: center; gap: 20px; background-color: #6d28d9; padding: 10px 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); position: fixed; top: 0; left: 0; width: 100%; z-index: 999; box-sizing: border-box; }
+        .navbar-left, .navbar-right { flex: 1; }
+        .navbar-center { flex: 2; display: flex; justify-content: center; gap: 15px; }
+        .navbar-right { display: flex; justify-content: flex-end; }
+        .navbar-logo { height: 45px; width: auto; }
+        .main-navbar .nav-button { background-color: transparent; color: white; border: 2px solid transparent; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 1em; cursor: pointer; transition: all 0.2s; text-decoration: none; white-space: nowrap; }
+        .main-navbar .nav-button:hover { background-color: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.5); }
+        .main-navbar .nav-button.logout { background-color: rgba(220, 38, 38, 0.7); }
+        .main-navbar .nav-button.logout:hover { background-color: #dc2626; border-color: transparent; }
     </style>
 </head>
 <body>
-  <style>
-    body {
-        padding-top: 70px; 
-    }
-    .main-navbar {
-        display: flex;
-        justify-content: space-between; /* Alinha os 3 blocos (esquerda, centro, direita) */
-        align-items: center;
-        gap: 20px;
-        background-color: #6d28d9;
-        padding: 10px 20px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        z-index: 1001;
-        box-sizing: border-box;
-    }
-    /* Blocos da navbar */
-    .navbar-left, .navbar-right {
-        flex: 1;
-    }
-    .navbar-center {
-        flex: 2;
-        display: flex;
-        justify-content: center;
-        gap: 15px;
-    }
-    .navbar-right {
-        display: flex;
-        justify-content: flex-end;
-    }
 
-    /* Estilo da Logo */
-    .navbar-logo {
-        height: 45px;
-        width: auto;
-    }
-
-    /* Estilo dos Botões */
-    .main-navbar .nav-button {
-        background-color: transparent;
-        color: white;
-        border: 2px solid transparent;
-        padding: 8px 16px;
-        border-radius: 6px;
-        font-weight: bold;
-        font-size: 1em;
-        cursor: pointer;
-        transition: all 0.2s;
-        text-decoration: none;
-        white-space: nowrap; /* Impede que o texto quebre linha */
-    }
-    .main-navbar .nav-button:hover {
-        background-color: rgba(255, 255, 255, 0.1);
-        border-color: rgba(255, 255, 255, 0.5);
-    }
-    .main-navbar .nav-button.logout {
-        background-color: rgba(220, 38, 38, 0.7);
-    }
-    .main-navbar .nav-button.logout:hover {
-        background-color: #dc2626;
-        border-color: transparent;
-    }
-</style>
-
-<nav class="main-navbar">
-    <div class="navbar-left">
-         <img src="https://i.postimg.cc/Qd98gFMF/Sistema-ARK.webp" alt="Logo" class="navbar-logo">
-    </div>
-    <div class="navbar-center">
-        <a href="javascript:void(0);" onclick="navigateToNavbar('BoasVindas')" class="nav-button">Início</a>
-        <a href="javascript:void(0);" onclick="navigateToNavbar('index')" class="nav-button">Dashboard</a>
-        <a href="javascript:void(0);" onclick="navigateToNavbar('lancamentos')" class="nav-button">Lançamentos</a>
-        <a href="javascript:void(0);" onclick="navigateToNavbar('cadastro')" class="nav-button">Cadastro</a>
-    </div>
-    <div class="navbar-right">
-        <a href="javascript:void(0);" onclick="handleLogoutNavbar()" class="nav-button logout">Sair</a>
-    </div>
-</nav>
-
-<script>
-    // Funções de navegação específicas para a Navbar, para evitar conflitos
-    function navigateToNavbar(page) {
-        // Esta linha pega o URL base da aplicação
-        const url = '<?= getScriptUrl() ?>';
-        // E aqui montamos o link corretamente
-        window.top.location.href = url + "?page=" + page;
-    }
-    function handleLogoutNavbar() {
-        const url = '<?= getScriptUrl() ?>';
-        localStorage.removeItem('isLoggedIn');
-        window.top.location.href = url + "?page=login";
-    }
-</script>
-
-<script>
-    function navbar_navigateTo(page) {
-        let url = '<?= getScriptUrl() ?>';
-        // Redireciona para 'index' sem o '?page=index' para uma URL mais limpa
-        if (page === 'index') {
-            window.top.location.href = url;
-        } else {
-            window.top.location.href = url + "?page=" + page;
+    <nav class="main-navbar">
+        <div class="navbar-left">
+            <img src="https://i.postimg.cc/Qd98gFMF/Sistema-ARK.webp" alt="Logo" class="navbar-logo">
+        </div>
+        <div class="navbar-center">
+            <a href="javascript:void(0);" onclick="navigateToNavbar('BoasVindas')" class="nav-button">Início</a>
+            <a href="javascript:void(0);" onclick="navigateToNavbar('index')" class="nav-button">Controle Financeiro</a>
+            <a href="javascript:void(0);" onclick="navigateToNavbar('lancamentos')" class="nav-button">Lançamentos</a>
+            <a href="javascript:void(0);" onclick="navigateToNavbar('cadastro')" class="nav-button">Cadastro</a>
+        </div>
+        <div class="navbar-right">
+            <a href="javascript:void(0);" onclick="handleLogoutNavbar()" class="nav-button logout">Sair</a>
+        </div>
+    </nav>
+    
+    <script>
+        function navigateToNavbar(page) {
+            const baseUrl = '<?= getScriptUrl() ?>';
+            window.top.location.href = baseUrl + "?page=" + page;
         }
-    }
-    function navbar_handleLogout() {
-        let url = '<?= getScriptUrl() ?>';
-        localStorage.removeItem('isLoggedIn');
-        window.top.location.href = url + "?page=login";
-    }
-</script>
-    <div id="loading">Autenticando...</div>
+        function handleLogoutNavbar() {
+            const baseUrl = '<?= getScriptUrl() ?>';
+            localStorage.removeItem('isLoggedIn');
+            window.top.location.href = baseUrl + "?page=login";
+        }
+    </script>
+
+    <div id="loading">Carregando...</div>
 
     <div id="access-denied">
         <h2>Acesso Negado</h2>
         <p>Você precisa fazer o login para acessar esta página.</p>
-        <button class="btn" onclick="navigateTo('login')">Ir para o Login</button>
     </div>
 
     <div class="container" id="main-container">
-        
-
-        <div class="grid-cadastro">
-            <div class="card">
-                <h2>Produtos</h2>
-                <div class="form-cadastro"><input type="text" id="input-produto" placeholder="Novo produto"><button class="btn" onclick="adicionar('produto')">Adicionar</button></div>
-                <ul id="lista-produtos" class="lista-itens"><div class="loader">Carregando...</div></ul>
-            </div>
-            <div class="card">
-                <h2>Compradores</h2>
-                <div class="form-cadastro"><input type="text" id="input-comprador" placeholder="Novo comprador"><button class="btn" onclick="adicionar('comprador')">Adicionar</button></div>
-                <ul id="lista-compradores" class="lista-itens"><div class="loader">Carregando...</div></ul>
-            </div>
-            <div class="card">
-                <h2>Insumos</h2>
-                <div class="form-cadastro"><input type="text" id="input-insumo" placeholder="Novo insumo"><button class="btn" onclick="adicionar('insumo')">Adicionar</button></div>
-                <ul id="lista-insumos" class="lista-itens"><div class="loader">Carregando...</div></ul>
-            </div>
-        </div>
-
-        <div class="card">
-            <h2>Gerenciar Funcionários</h2>
-            <div class="form-cadastro">
-                <input type="text" id="input-novo-funcionario" placeholder="Nome do novo funcionário">
-                <button class="btn" onclick="adicionarNovoFuncionario()">Criar Funcionário e Aba</button>
-            </div>
-            <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
-            <div class="form-cadastro">
-                <select id="select-funcionario-gerenciar" style="flex-grow: 1;"></select>
-                <button class="btn btn-danger" onclick="confirmarDeletarFuncionario()">Deletar Funcionário</button>
-            </div>
+        <div class="botoes-gerenciamento">
+            <button class="btn-gerenciar" onclick="abrirModalGerenciamento('produto')">Gerenciar Produtos</button>
+            <button class="btn-gerenciar" onclick="abrirModalGerenciamento('comprador')">Gerenciar Compradores</button>
+            <button class="btn-gerenciar" onclick="abrirModalGerenciamento('insumo')">Gerenciar Insumos</button>
+            <button class="btn-gerenciar" onclick="abrirModalGerenciamento('fornecedor')">Gerenciar Fornecedores</button>
+            <button class="btn-gerenciar" onclick="abrirModalGerenciamento('funcionario')">Gerenciar Funcionários</button>
         </div>
     </div>
 
+    <div id="gerenciamento-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2 id="gerenciamento-modal-title"></h2>
+                <button class="close-btn" onclick="fecharModalGerenciamento()">×</button>
+            </div>
+            <div id="gerenciamento-modal-body" class="modal-body">
+                </div>
+        </div>
+    </div>
+    
     <div id="custom-modal-overlay" class="modal-overlay-hidden">
         <div id="custom-modal-box">
             <h3 id="custom-modal-title"></h3>
@@ -216,56 +134,296 @@
                 <input type="text" id="custom-modal-input" style="display: none;" />
             </div>
             <div id="custom-modal-footer">
-                <button id="custom-modal-btn-cancel" class="btn btn-secundario">Cancelar</button>
-                <button id="custom-modal-btn-confirm" class="btn">Confirmar</button>
+                <button id="custom-modal-btn-cancel" class="btn-secundario">Cancelar</button>
+                <button id="custom-modal-btn-confirm" class="btn-add">Confirmar</button>
             </div>
         </div>
     </div>
+    
+    <div id="toast-notification"></div>
 
     <script>
-        let scriptUrl = '<?= getScriptUrl() ?>';
+        // Agora este script contém apenas a lógica da página de Cadastro
+        let dadosGlobais = {}; 
+
+        const elementos = {
+            loading: document.getElementById('loading'),
+            accessDenied: document.getElementById('access-denied'),
+            mainContainer: document.getElementById('main-container'),
+            gerenciamentoModal: {
+                overlay: document.getElementById('gerenciamento-modal'),
+                title: document.getElementById('gerenciamento-modal-title'),
+                body: document.getElementById('gerenciamento-modal-body')
+            },
+            customModal: {
+                overlay: document.getElementById('custom-modal-overlay'),
+                title: document.getElementById('custom-modal-title'),
+                text: document.getElementById('custom-modal-text'),
+                input: document.getElementById('custom-modal-input'),
+                btnConfirm: document.getElementById('custom-modal-btn-confirm'),
+                btnCancel: document.getElementById('custom-modal-btn-cancel')
+            }
+        };
+
+        let customModalCallback = null;
 
         window.addEventListener('load', () => {
             if (localStorage.getItem('isLoggedIn') !== 'true') {
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('access-denied').style.display = 'block';
+                elementos.loading.style.display = 'none';
+                elementos.accessDenied.style.display = 'block';
                 return;
             }
-            
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('main-container').style.display = 'block';
-
-            carregarDados();
-            carregarFuncionariosParaGerenciar();
+            elementos.loading.style.display = 'none';
+            elementos.mainContainer.style.display = 'block';
+            carregarDadosIniciais();
         });
-
-
-         function navigateTo(page) {
-            window.top.location.href = scriptUrl + (page === 'index' ? '' : `?page=${page}`);
+        
+        function carregarDadosIniciais() {
+            elementos.loading.style.display = 'block';
+            elementos.mainContainer.style.display = 'none';
+            google.script.run
+                .withSuccessHandler(dados => {
+                    dadosGlobais.cadastro = dados;
+                    google.script.run
+                        .withSuccessHandler(funcionarios => {
+                            dadosGlobais.funcionarios = funcionarios;
+                            elementos.loading.style.display = 'none';
+                            elementos.mainContainer.style.display = 'block';
+                        })
+                        .getFuncionarios();
+                })
+                .getDadosCadastro();
         }
 
-        function handleLogout() {
-            localStorage.removeItem('isLoggedIn');
-            navigateTo('login');
+        function abrirModalGerenciamento(tipo) {
+            const modal = elementos.gerenciamentoModal;
+            modal.overlay.dataset.tipo = tipo;
+            const titulos = {
+                produto: "Gerenciar Produtos",
+                comprador: "Gerenciar Compradores",
+                insumo: "Gerenciar Insumos",
+                fornecedor: "Gerenciar Fornecedores",
+                funcionario: "Gerenciar Funcionários"
+            };
+            modal.title.textContent = titulos[tipo];
+            renderizarConteudoModal(tipo);
+            modal.overlay.style.display = 'flex';
         }
 
-        const modal = {
-            overlay: document.getElementById('custom-modal-overlay'),
-            title: document.getElementById('custom-modal-title'),
-            text: document.getElementById('custom-modal-text'),
-            input: document.getElementById('custom-modal-input'),
-            btnConfirm: document.getElementById('custom-modal-btn-confirm'),
-            btnCancel: document.getElementById('custom-modal-btn-cancel')
-        };
+        function fecharModalGerenciamento() {
+            elementos.gerenciamentoModal.overlay.style.display = 'none';
+        }
 
-        let modalCallback = null;
+        function renderizarConteudoModal(tipo) {
+            const body = elementos.gerenciamentoModal.body;
+            body.innerHTML = ''; 
+
+            if (tipo === 'funcionario') {
+                renderizarModalFuncionarios(body);
+            } else {
+                renderizarModalItens(body, tipo);
+            }
+        }
+        
+        function renderizarModalItens(container, tipo) {
+            const pluralMap = {
+                produto: 'produtos',
+                comprador: 'compradores',
+                insumo: 'insumos',
+                fornecedor: 'fornecedores'
+            };
+            const tipoPlural = pluralMap[tipo];
+            const placeholder = `Nome do novo ${tipo}`;
+            const listaItens = dadosGlobais.cadastro[tipoPlural] || [];
+            
+            let html = `
+                <div class="form-add-item">
+                    <input type="text" id="input-add-${tipo}" placeholder="${placeholder}">
+                    <button class="btn-add" onclick="adicionarItemModal()">Adicionar</button>
+                </div>
+                <ul class="lista-gerenciamento" id="lista-modal-${tipo}">
+            `;
+            if (listaItens.length > 0) {
+                listaItens.sort((a,b) => a.localeCompare(b)).forEach(item => {
+                    html += `
+                        <li>
+                            <span>${item}</span>
+                            <div class="item-acoes">
+                                <button title="Editar" onclick="editarItem('${tipo}', '${item}')">✏️</button>
+                                <button title="Excluir" onclick="excluirItem('${tipo}', '${item}')">🗑️</button>
+                            </div>
+                        </li>
+                    `;
+                });
+            } else {
+                html += '<li>Nenhum item cadastrado.</li>';
+            }
+            html += '</ul>';
+            container.innerHTML = html;
+        }
+
+        function renderizarModalFuncionarios(container) {
+            const listaFuncionarios = dadosGlobais.funcionarios || [];
+            let options = listaFuncionarios.map(f => `<option value="${f}">${f}</option>`).join('');
+            container.innerHTML = `
+                <div class="form-gerenciar-func">
+                    <h4>Criar Novo Funcionário</h4>
+                    <div class="form-group">
+                        <input type="text" id="input-novo-funcionario-modal" placeholder="Nome do novo funcionário">
+                        <button class="btn-add" onclick="adicionarNovoFuncionarioModal()">Criar</button>
+                    </div>
+                    <hr>
+                    <h4>Deletar Funcionário Existente</h4>
+                    <div class="form-group">
+                        <select id="select-funcionario-modal">
+                            <option value="">Selecione um funcionário</option>
+                            ${options}
+                        </select>
+                        <button class="btn-danger" onclick="deletarFuncionarioModal()">Deletar</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function showToast(message, type = 'success', duration = 3000) {
+            const toast = document.getElementById('toast-notification');
+            if(!toast) return;
+            toast.textContent = message;
+            toast.className = 'show ' + type;
+            setTimeout(() => { toast.className = toast.className.replace('show', ''); }, duration);
+        }
+
+        function adicionarItemModal() {
+            const tipo = elementos.gerenciamentoModal.overlay.dataset.tipo;
+            const input = document.getElementById(`input-add-${tipo}`);
+            const valor = input.value.trim();
+            if (!valor) return;
+            
+            const btn = input.nextElementSibling;
+            btn.disabled = true;
+            input.disabled = true;
+            google.script.run.withSuccessHandler(resultado => {
+                btn.disabled = false;
+                input.disabled = false;
+                if (resultado.sucesso) {
+                    showToast(`${tipo.charAt(0).toUpperCase() + tipo.slice(1)} adicionado(a) com sucesso!`, 'success');
+                    google.script.run.withSuccessHandler(dados => {
+                        dadosGlobais.cadastro = dados;
+                        renderizarConteudoModal(tipo);
+                    }).getDadosCadastro();
+                } else {
+                    showToast(resultado.erro, 'error');
+                }
+            }).adicionarItem(tipo, valor);
+        }
+
+        function editarItem(tipo, valorAntigo) {
+            showCustomModal({
+                title: `Editar ${tipo}`,
+                text: `Digite o novo nome para "${valorAntigo}":`,
+                type: 'prompt',
+                placeholder: valorAntigo,
+                callback: (valorNovo) => {
+                    if (valorNovo && valorNovo.trim() !== valorAntigo) {
+                        google.script.run.withSuccessHandler(resultado => {
+                            if (resultado.sucesso) {
+                                showToast(`${tipo.charAt(0).toUpperCase() + tipo.slice(1)} editado(a) com sucesso!`, 'success');
+                                google.script.run.withSuccessHandler(dados => {
+                                    dadosGlobais.cadastro = dados;
+                                    renderizarConteudoModal(tipo);
+                                }).getDadosCadastro();
+                            } else {
+                                showToast(resultado.erro, 'error');
+                            }
+                        }).editarItem(tipo, valorAntigo, valorNovo.trim());
+                    }
+                }
+            });
+        }
+
+        function excluirItem(tipo, valor) {
+            showCustomModal({
+                title: 'Confirmar Exclusão',
+                text: `Tem certeza que deseja excluir o ${tipo} "${valor}"?`,
+                type: 'confirm',
+                callback: (confirmado) => {
+                    if (confirmado) {
+                        google.script.run.withSuccessHandler(resultado => {
+                            if (resultado.sucesso) {
+                                showToast(`${tipo.charAt(0).toUpperCase() + tipo.slice(1)} excluído(a) com sucesso!`, 'success');
+                                google.script.run.withSuccessHandler(dados => {
+                                    dadosGlobais.cadastro = dados;
+                                    renderizarConteudoModal(tipo);
+                                }).getDadosCadastro();
+                            } else {
+                                showToast(resultado.erro, 'error');
+                            }
+                        }).excluirItem(tipo, valor);
+                    }
+                }
+            });
+        }
+
+        function adicionarNovoFuncionarioModal() {
+            const input = document.getElementById('input-novo-funcionario-modal');
+            const nome = input.value.trim();
+            if(!nome) return;
+            input.disabled = true;
+            input.nextElementSibling.disabled = true;
+            google.script.run.withSuccessHandler(resultado => {
+                input.disabled = false;
+                input.nextElementSibling.disabled = false;
+                if(resultado.sucesso) {
+                    showToast(resultado.mensagem, 'success');
+                    google.script.run.withSuccessHandler(funcionarios => {
+                        dadosGlobais.funcionarios = funcionarios;
+                        renderizarConteudoModal('funcionario');
+                    }).getFuncionarios();
+                } else {
+                    showToast(resultado.erro, 'error');
+                }
+            }).adicionarFuncionario(nome);
+        }
+
+        function deletarFuncionarioModal() {
+            const select = document.getElementById('select-funcionario-modal');
+            const nome = select.value;
+            if(!nome) {
+                showCustomModal({ title: 'Atenção', text: 'Selecione um funcionário para deletar.', type: 'alert' });
+                return;
+            }
+            showCustomModal({
+                title: 'AÇÃO IRREVERSÍVEL!',
+                text: `Para confirmar a exclusão de "${nome}" e todos os seus dados, digite o nome abaixo:`,
+                type: 'prompt',
+                placeholder: 'Digite o nome para confirmar',
+                callback: (confirmacao) => {
+                    if (confirmacao === nome) {
+                        google.script.run.withSuccessHandler(resultado => {
+                             if (resultado.sucesso) {
+                                showToast(resultado.mensagem, 'success');
+                                google.script.run.withSuccessHandler(funcionarios => {
+                                    dadosGlobais.funcionarios = funcionarios;
+                                    renderizarConteudoModal('funcionario');
+                                }).getFuncionarios();
+                            } else {
+                                showToast(resultado.erro, 'error');
+                            }
+                        }).deletarFuncionario(nome);
+                    } else if (confirmacao !== null) {
+                        showToast('O nome digitado não confere. Ação cancelada.', 'error');
+                    }
+                }
+            });
+        }
 
         function showCustomModal(options = {}) {
             const { title = 'Aviso', text = '', type = 'alert', placeholder = '', callback = null } = options;
+            const modal = elementos.customModal;
             if (!modal.overlay) return;
             modal.title.textContent = title;
             modal.text.textContent = text;
-            modalCallback = (typeof callback === 'function') ? callback : null;
+            customModalCallback = (typeof callback === 'function') ? callback : null;
             modal.input.style.display = type === 'prompt' ? 'block' : 'none';
             modal.input.value = '';
             modal.input.placeholder = placeholder;
@@ -275,177 +433,22 @@
         }
 
         function hideCustomModal() {
+            const modal = elementos.customModal;
             if (!modal.overlay) return;
             modal.overlay.classList.add('modal-overlay-hidden');
-            modalCallback = null;
+            customModalCallback = null;
         }
 
-        modal.btnConfirm.addEventListener('click', () => {
-            if (modalCallback) {
-                const inputValue = modal.input.style.display === 'block' ? modal.input.value : true;
-                modalCallback(inputValue);
+        elementos.customModal.btnConfirm.addEventListener('click', () => {
+            if (customModalCallback) {
+                const inputValue = elementos.customModal.input.style.display === 'block' ? elementos.customModal.input.value : true;
+                customModalCallback(inputValue);
             }
             hideCustomModal();
         });
 
-        modal.btnCancel.addEventListener('click', hideCustomModal);
-        modal.overlay.addEventListener('click', (e) => { if (e.target === modal.overlay) hideCustomModal(); });
-
-        function carregarDados() {
-            google.script.run.withSuccessHandler(onDadosCarregados).getDadosCadastro();
-        }
-
-        function onDadosCarregados(dados) {
-            if (dados.erro) {
-                showCustomModal({ title: 'Erro', text: "Erro ao carregar dados: " + dados.erro, type: 'alert' });
-                return;
-            }
-            displayItens('produtos', dados.produtos || []);
-            displayItens('compradores', dados.compradores || []);
-            displayItens('insumos', dados.insumos || []);
-        }
-
-        function displayItens(tipoPlural, lista) {
-            const ul = document.getElementById(`lista-${tipoPlural}`);
-            ul.innerHTML = '';
-            if (lista.length === 0) {
-                ul.innerHTML = '<li>Nenhum item cadastrado.</li>';
-                return;
-            }
-            const tipoSingular = { produtos: 'produto', compradores: 'comprador', insumos: 'insumo' }[tipoPlural];
-            lista.sort((a,b) => a.localeCompare(b)).forEach(item => {
-                const li = document.createElement('li');
-                li.innerHTML = `<span>${item}</span><div class="item-acoes"><button title="Editar" onclick="editar('${tipoSingular}', '${item}')">✏️</button><button title="Excluir" onclick="excluir('${tipoSingular}', '${item}')">🗑️</button></div>`;
-                ul.appendChild(li);
-            });
-        }
-
-        function adicionar(tipo) {
-            const input = document.getElementById(`input-${tipo}`);
-            const valor = input.value.trim();
-            if (!valor) {
-                showCustomModal({ title: 'Atenção', text: 'Por favor, digite um valor.', type: 'alert' });
-                return;
-            }
-            input.disabled = true;
-            input.nextElementSibling.disabled = true;
-            google.script.run.withSuccessHandler(resultado => {
-                input.disabled = false;
-                input.nextElementSibling.disabled = false;
-                input.value = '';
-                if (resultado.sucesso) {
-                    carregarDados();
-                } else {
-                    showCustomModal({ title: 'Erro', text: resultado.erro, type: 'alert' });
-                }
-            }).adicionarItem(tipo, valor);
-        }
-
-        function editar(tipo, valorAntigo) {
-            showCustomModal({
-                title: `Editar ${tipo}`,
-                text: `Digite o novo nome para "${valorAntigo}":`,
-                type: 'prompt',
-                placeholder: valorAntigo,
-                callback: (valorNovo) => {
-                    if (valorNovo && valorNovo.trim() !== valorAntigo) {
-                        google.script.run.withSuccessHandler(resultado => {
-                            if (resultado.sucesso) carregarDados();
-                            else showCustomModal({ title: 'Erro', text: resultado.erro, type: 'alert' });
-                        }).editarItem(tipo, valorAntigo, valorNovo.trim());
-                    }
-                }
-            });
-        }
-
-        function excluir(tipo, valor) {
-            showCustomModal({
-                title: 'Confirmar Exclusão',
-                text: `Tem certeza que deseja excluir o ${tipo} "${valor}"? Esta ação não pode ser desfeita.`,
-                type: 'confirm',
-                callback: (confirmado) => {
-                    if (confirmado) {
-                        google.script.run.withSuccessHandler(resultado => {
-                            if (resultado.sucesso) carregarDados();
-                            else showCustomModal({ title: 'Erro', text: resultado.erro, type: 'alert' });
-                        }).excluirItem(tipo, valor);
-                    }
-                }
-            });
-        }
-
-        function carregarFuncionariosParaGerenciar() {
-            google.script.run.withSuccessHandler(funcionarios => {
-                const select = document.getElementById('select-funcionario-gerenciar');
-                const valorAtual = select.value;
-                select.innerHTML = '<option value="">Selecione um funcionário</option>';
-                funcionarios.forEach(f => {
-                    const selected = f === valorAtual ? 'selected' : '';
-                    select.innerHTML += `<option value="${f}" ${selected}>${f}</option>`;
-                });
-            }).getFuncionarios();
-        }
-
-        function adicionarNovoFuncionario() {
-            const input = document.getElementById('input-novo-funcionario');
-            const nomeFuncionario = input.value.trim();
-            if (!nomeFuncionario) {
-                showCustomModal({ title: 'Atenção', text: 'Por favor, digite o nome do novo funcionário.', type: 'alert' });
-                return;
-            }
-            const btnAdicionar = input.nextElementSibling;
-            input.disabled = true;
-            btnAdicionar.disabled = true;
-            btnAdicionar.textContent = 'Criando...';
-            google.script.run.withSuccessHandler(resultado => {
-                input.disabled = false;
-                btnAdicionar.disabled = false;
-                btnAdicionar.textContent = 'Criar Funcionário e Aba';
-                input.value = '';
-                if (resultado.sucesso) {
-                    showCustomModal({ title: 'Sucesso!', text: resultado.mensagem, type: 'alert' });
-                    carregarFuncionariosParaGerenciar();
-                } else {
-                    showCustomModal({ title: 'Erro', text: resultado.erro, type: 'alert' });
-                }
-            }).adicionarFuncionario(nomeFuncionario);
-        }
-
-        function confirmarDeletarFuncionario() {
-            const select = document.getElementById('select-funcionario-gerenciar');
-            const nomeFuncionario = select.value;
-            if (!nomeFuncionario) {
-                showCustomModal({ title: 'Atenção', text: 'Por favor, selecione um funcionário para deletar.', type: 'alert' });
-                return;
-            }
-            showCustomModal({
-                title: 'AÇÃO IRREVERSÍVEL!',
-                text: `Você está prestes a deletar o funcionário "${nomeFuncionario}" e todos os seus dados. Para confirmar, digite o nome do funcionário abaixo:`,
-                type: 'prompt',
-                placeholder: 'Digite o nome para confirmar',
-                callback: (confirmacao) => {
-                    if (confirmacao === nomeFuncionario) {
-                        const btnDeletar = select.nextElementSibling;
-                        select.disabled = true;
-                        btnDeletar.disabled = true;
-                        btnDeletar.textContent = 'Deletando...';
-                        google.script.run.withSuccessHandler(resultado => {
-                            select.disabled = false;
-                            btnDeletar.disabled = false;
-                            btnDeletar.textContent = 'Deletar Funcionário';
-                            if (resultado.sucesso) {
-                                showCustomModal({ title: 'Sucesso', text: resultado.mensagem, type: 'alert' });
-                                carregarFuncionariosParaGerenciar();
-                            } else {
-                                showCustomModal({ title: 'Erro', text: resultado.erro, type: 'alert' });
-                            }
-                        }).deletarFuncionario(nomeFuncionario);
-                    } else if(confirmacao !== null) {
-                         showCustomModal({ title: 'Ação Cancelada', text: 'O nome digitado não confere.', type: 'alert' });
-                    }
-                }
-            });
-        }
+        elementos.customModal.btnCancel.addEventListener('click', hideCustomModal);
+        elementos.customModal.overlay.addEventListener('click', (e) => { if (e.target === elementos.customModal.overlay) hideCustomModal(); });
     </script>
 </body>
 </html>

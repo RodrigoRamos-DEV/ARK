@@ -66,90 +66,32 @@
         #toast-notification.show { visibility: visible; opacity: 1; }
         #toast-notification.success { background-color: var(--cor-sucesso); }
         #toast-notification.error { background-color: var(--cor-erro); }
-        nav { display: flex; align-items: center; gap: 20px; }
-        nav a { color: var(--cor-primaria); font-weight: bold; text-decoration: none; cursor: pointer; }
-        nav a.logout { color: #dc2626; }
         
         input::-webkit-outer-spin-button,
         input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
+
+        body { padding-top: 70px; }
+        .main-navbar { display: flex; justify-content: space-between; align-items: center; gap: 20px; background-color: #6d28d9; padding: 10px 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); position: fixed; top: 0; left: 0; width: 100%; z-index: 1001; box-sizing: border-box; }
+        .navbar-left, .navbar-right { flex: 1; }
+        .navbar-center { flex: 2; display: flex; justify-content: center; gap: 15px; }
+        .navbar-right { display: flex; justify-content: flex-end; }
+        .navbar-logo { height: 45px; width: auto; }
+        .main-navbar .nav-button { background-color: transparent; color: white; border: 2px solid transparent; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 1em; cursor: pointer; transition: all 0.2s; text-decoration: none; white-space: nowrap; }
+        .main-navbar .nav-button:hover { background-color: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.5); }
+        .main-navbar .nav-button.logout { background-color: rgba(220, 38, 38, 0.7); }
+        .main-navbar .nav-button.logout:hover { background-color: #dc2626; border-color: transparent; }
     </style>
 </head>
 <body>
-    <style>
-        body {
-            padding-top: 70px; 
-        }
-        .main-navbar {
-            display: flex;
-            justify-content: space-between; /* Alinha os 3 blocos (esquerda, centro, direita) */
-            align-items: center;
-            gap: 20px;
-            background-color: #6d28d9;
-            padding: 10px 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            z-index: 1001;
-            box-sizing: border-box;
-        }
-        /* Blocos da navbar */
-        .navbar-left, .navbar-right {
-            flex: 1;
-        }
-        .navbar-center {
-            flex: 2;
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
-        .navbar-right {
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        /* Estilo da Logo */
-        .navbar-logo {
-            height: 45px;
-            width: auto;
-        }
-
-        /* Estilo dos Botões */
-        .main-navbar .nav-button {
-            background-color: transparent;
-            color: white;
-            border: 2px solid transparent;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 1em;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
-            white-space: nowrap; /* Impede que o texto quebre linha */
-        }
-        .main-navbar .nav-button:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.5);
-        }
-        .main-navbar .nav-button.logout {
-            background-color: rgba(220, 38, 38, 0.7);
-        }
-        .main-navbar .nav-button.logout:hover {
-            background-color: #dc2626;
-            border-color: transparent;
-        }
-    </style>
-
+    
     <nav class="main-navbar">
         <div class="navbar-left">
              <img src="https://i.postimg.cc/Qd98gFMF/Sistema-ARK.webp" alt="Logo" class="navbar-logo">
         </div>
         <div class="navbar-center">
             <a href="javascript:void(0);" onclick="navigateToNavbar('BoasVindas')" class="nav-button">Início</a>
-            <a href="javascript:void(0);" onclick="navigateToNavbar('index')" class="nav-button">Dashboard</a>
+            <a href="javascript:void(0);" onclick="navigateToNavbar('index')" class="nav-button">Controle Financeiro</a>
             <a href="javascript:void(0);" onclick="navigateToNavbar('lancamentos')" class="nav-button">Lançamentos</a>
             <a href="javascript:void(0);" onclick="navigateToNavbar('cadastro')" class="nav-button">Cadastro</a>
         </div>
@@ -159,23 +101,23 @@
     </nav>
 
     <script>
-        // Funções de navegação específicas para a Navbar, para evitar conflitos
         function navigateToNavbar(page) {
-            const url = '<?= getScriptUrl() ?>';
-            window.top.location.href = url + "?page=" + page;
+            const baseUrl = '<?= getScriptUrl() ?>';
+            window.top.location.href = baseUrl + "?page=" + page;
         }
         function handleLogoutNavbar() {
-            const url = '<?= getScriptUrl() ?>';
+            const baseUrl = '<?= getScriptUrl() ?>';
             localStorage.removeItem('isLoggedIn');
-            window.top.location.href = url + "?page=login";
+            window.top.location.href = baseUrl + "?page=login";
         }
     </script>
+
     <div id="loading"><h2>Autenticando...</h2></div>
 
     <div id="access-denied" style="display:none;">
         <h2>Acesso Negado</h2>
         <p>Você precisa fazer o login para acessar esta página.</p>
-        <button class="btn" onclick="navigateTo('login')">Ir para o Login</button>
+        <button class="btn" onclick="navigateToNavbar('login')">Ir para o Login</button>
     </div>
 
     <div class="container" id="main-container">
@@ -192,6 +134,7 @@
                     <div><label for="filtro-produto">Produto</label><select id="filtro-produto"></select></div>
                     <div><label for="filtro-comprador">Comprador</label><select id="filtro-comprador"></select></div>
                     <div><label for="filtro-insumo">Insumo</label><select id="filtro-insumo"></select></div>
+                    <div><label for="filtro-fornecedor">Fornecedor</label><select id="filtro-fornecedor"></select></div>
                     <div><label for="filtro-status">Status</label><select id="filtro-status">
                         <option value="TODOS">Todos</option>
                         <option value="PAGO">Pago</option>
@@ -216,24 +159,23 @@
     
     <datalist id="datalist-produtos"></datalist>
     <datalist id="datalist-insumos"></datalist>
+    <datalist id="datalist-fornecedores"></datalist>
 
     <div class="modal-overlay" id="lancamento-modal"> <div class="modal-box"> <h2 id="modal-titulo">Novo Lançamento</h2> <div class="modal-body" id="modal-body"></div> <div class="modal-footer"> <button class="btn" id="btn-add-linha">Adicionar Linha</button><div><button id="btn-cancelar-modal" class="btn btn-secundario">Cancelar</button><button id="btn-salvar-modal" class="btn btn-success">Salvar</button></div></div></div></div>
     <div class="modal-overlay" id="confirm-modal"> <div class="modal-box" id="confirm-modal-box"> <h3 id="confirm-modal-titulo">Confirmar Ação</h3> <p id="confirm-modal-texto">Você tem certeza?</p> <div id="confirm-modal-footer"> <button id="confirm-btn-cancelar" class="btn btn-secundario">Cancelar</button> <button id="confirm-btn-confirmar" class="btn btn-danger">Confirmar</button> </div> </div> </div>
     <div id="toast-notification"></div>
 
     <script>
-        let scriptUrl = '<?= getScriptUrl() ?>';
         let dadosCadastro = {};
         let lancamentosAtuais = { vendas: [], gastos: [] };
         let funcionarioSelecionado = '';
         const elementos = {
             funcSelect: document.getElementById('func-select'),
             areaLancamentos: document.getElementById('area-lancamentos'),
-            // ADICIONADO NOVO FILTRO AQUI
-            filtros: { dataInicio: document.getElementById('filtro-data-inicio'), dataFim: document.getElementById('filtro-data-fim'), produto: document.getElementById('filtro-produto'), comprador: document.getElementById('filtro-comprador'), insumo: document.getElementById('filtro-insumo'), status: document.getElementById('filtro-status') },
+            filtros: { dataInicio: document.getElementById('filtro-data-inicio'), dataFim: document.getElementById('filtro-data-fim'), produto: document.getElementById('filtro-produto'), comprador: document.getElementById('filtro-comprador'), insumo: document.getElementById('filtro-insumo'), fornecedor: document.getElementById('filtro-fornecedor'), status: document.getElementById('filtro-status') },
             modais: { lancamento: document.getElementById('lancamento-modal'), lancamentoTitulo: document.getElementById('modal-titulo'), lancamentoBody: document.getElementById('modal-body'), confirm: document.getElementById('confirm-modal'), confirmText: document.getElementById('confirm-modal-texto') },
             botoes: { acaoMassa: document.getElementById('botoes-acao-massa') },
-            datalists: { produtos: document.getElementById('datalist-produtos'), insumos: document.getElementById('datalist-insumos') }
+            datalists: { produtos: document.getElementById('datalist-produtos'), insumos: document.getElementById('datalist-insumos'), fornecedores: document.getElementById('datalist-fornecedores') }
         };
         
         window.addEventListener('load', () => {
@@ -267,6 +209,7 @@
                     dadosCadastro = dados;
                     preencherDatalist(elementos.datalists.produtos, dados.produtos);
                     preencherDatalist(elementos.datalists.insumos, dados.insumos);
+                    preencherDatalist(elementos.datalists.fornecedores, dados.fornecedores);
                 }
             }).getDadosCadastro();
             
@@ -282,10 +225,6 @@
             datalistElement.innerHTML = '';
             (opcoes || []).sort().forEach(opt => { datalistElement.innerHTML += `<option value="${opt}">`; });
         }
-
-        // Esta função não é mais necessária aqui, pois está na Navbar
-        // function navigateTo(page) { window.top.location.href = scriptUrl + (page === 'index' ? '' : `?page=${page}`); }
-        // function handleLogout() { localStorage.removeItem('isLoggedIn'); navigateTo('login'); }
 
         function carregarDadosDoFuncionario() {
             funcionarioSelecionado = elementos.funcSelect.value;
@@ -312,16 +251,16 @@
         function popularFiltros() {
             const popularSelect = (selectEl, opcoes) => {
                 selectEl.innerHTML = '<option value="TODOS">Todos</option>';
-                opcoes.forEach(opt => selectEl.innerHTML += `<option value="${opt}">${opt}</option>`);
+                [...new Set(opcoes)].sort().forEach(opt => selectEl.innerHTML += `<option value="${opt}">${opt}</option>`);
             };
-            popularSelect(elementos.filtros.produto, [...new Set(lancamentosAtuais.vendas.map(v => v.produto).filter(Boolean))].sort());
-            popularSelect(elementos.filtros.comprador, [...new Set(lancamentosAtuais.vendas.map(v => v.comprador).filter(Boolean))].sort());
-            popularSelect(elementos.filtros.insumo, [...new Set(lancamentosAtuais.gastos.map(g => g.insumo).filter(Boolean))].sort());
+            popularSelect(elementos.filtros.produto, lancamentosAtuais.vendas.map(v => v.produto).filter(Boolean));
+            popularSelect(elementos.filtros.comprador, lancamentosAtuais.vendas.map(v => v.comprador).filter(Boolean));
+            popularSelect(elementos.filtros.insumo, lancamentosAtuais.gastos.map(g => g.insumo).filter(Boolean));
+            popularSelect(elementos.filtros.fornecedor, lancamentosAtuais.gastos.map(g => g.fornecedor).filter(Boolean));
         }
         
-        // FUNÇÃO ATUALIZADA PARA INCLUIR O FILTRO DE STATUS
         function aplicarFiltrosErenderizar() {
-            const { dataInicio, dataFim, produto, comprador, insumo, status } = elementos.filtros;
+            const { dataInicio, dataFim, produto, comprador, insumo, fornecedor, status } = elementos.filtros;
             const dtInicio = dataInicio.value ? new Date(dataInicio.value + 'T00:00:00') : null;
             const dtFim = dataFim.value ? new Date(dataFim.value + 'T23:59:59') : null;
             const statusFiltro = status.value;
@@ -333,7 +272,7 @@
             };
 
             const vendasFiltradas = lancamentosAtuais.vendas.filter(v => filtroBase(v) && (produto.value === 'TODOS' || v.produto === produto.value) && (comprador.value === 'TODOS' || v.comprador === comprador.value));
-            const gastosFiltrados = lancamentosAtuais.gastos.filter(g => filtroBase(g) && (insumo.value === 'TODOS' || g.insumo === insumo.value));
+            const gastosFiltrados = lancamentosAtuais.gastos.filter(g => filtroBase(g) && (insumo.value === 'TODOS' || g.insumo === insumo.value) && (fornecedor.value === 'TODOS' || g.fornecedor === fornecedor.value));
             
             renderizarTabelas(vendasFiltradas, gastosFiltrados);
             verificarSelecao();
@@ -344,15 +283,18 @@
             renderizarTabela('gasto', gastos);
         }
 
+        // ===== FUNÇÃO CORRIGIDA =====
         function renderizarTabela(tipo, dados) {
             const containerEl = document.getElementById(`container-${tipo}s`);
             if (dados.length === 0) { containerEl.innerHTML = `<div class="tabela-vazia">Nenhum lançamento encontrado.</div>`; return; }
-            const cabecalhosBase = tipo === 'venda' ? ['Data', 'Qtd', 'Produto', 'Comprador', 'Valor', 'Total', 'Status', 'Ações'] : ['Data', 'Qtd', 'Insumo', 'Valor', 'Total', 'Status', 'Ações'];
+            const cabecalhosBase = tipo === 'venda' ? ['Data', 'Qtd', 'Produto', 'Comprador', 'Valor', 'Total', 'Status', 'Ações'] : ['Data', 'Fornecedor', 'Qtd', 'Insumo', 'Valor', 'Total', 'Status', 'Ações'];
             const cabecalhos = [`<input type="checkbox" onchange="selecionarTodos(this, '${tipo}')">`, ...cabecalhosBase];
             let html = `<table><thead><tr><th>${cabecalhos.join('</th><th>')}</th></tr></thead><tbody>`;
-            dados.sort((a,b) => b.data - a.data).forEach(item => {
+            
+            // Ordena os dados pela data em ordem crescente (do mais antigo para o mais novo)
+            dados.sort((a,b) => a.data - b.data).forEach(item => {
                 const linha = tipo === 'venda' ? `<td>${formatarData(item.data)}</td><td>${item.quantidade}</td><td>${item.produto}</td><td>${item.comprador}</td><td>${formatarMoeda(item.valor)}</td><td>${formatarMoeda(item.valorTotal)}</td><td>${item.status}</td>`
-                    : `<td>${formatarData(item.data)}</td><td>${item.quantidade}</td><td>${item.insumo}</td><td>${formatarMoeda(item.valor)}</td><td>${formatarMoeda(item.valorTotal)}</td><td>${item.status}</td>`;
+                    : `<td>${formatarData(item.data)}</td><td>${item.fornecedor || ''}</td><td>${item.quantidade}</td><td>${item.insumo}</td><td>${formatarMoeda(item.valor)}</td><td>${formatarMoeda(item.valorTotal)}</td><td>${item.status}</td>`;
                 html += `<tr><td><input type="checkbox" class="checkbox-item" data-id="${item.id}" onchange="verificarSelecao()"></td>${linha}<td class="td-acoes"><button onclick="editarLancamento('${tipo}', '${item.id}')">✏️</button><button onclick="excluirLancamento('${tipo}', '${item.id}')">🗑️</button></td></tr>`;
             });
             containerEl.innerHTML = html + '</tbody></table>';
@@ -391,7 +333,7 @@
             }
             if (gastosSelecionados.length > 0) {
                 lancamentoBody.innerHTML += `<h3 class="modal-bulk-edit-divider">Gastos</h3>`;
-                const headers = `<label class="header-data">Data</label><label>Qtd</label><label>Insumo</label><label>Valor Unitário</label><label>Total</label><label>Status</label>`;
+                const headers = `<label class="header-data">Data</label><label>Fornecedor</label><label>Qtd</label><label>Insumo</label><label>Valor Unitário</label><label>Total</label><label>Status</label>`;
                 lancamentoBody.innerHTML += `<div class="modal-linha-header">${headers}</div>`;
                 gastosSelecionados.forEach(item => adicionarLinhaNoModal('gasto', item, true));
             }
@@ -405,7 +347,7 @@
             lancamento.style.display = 'flex';
             lancamento.dataset.mode = 'single';
             lancamentoTitulo.textContent = dadosParaEditar ? `Editar Lançamento` : (tipo === 'venda' ? 'Nova Venda' : 'Novo Gasto');
-            const headers = tipo === 'venda' ? `<label class="header-data">Data</label><label>Qtd</label><label>Produto</label><label>Comprador</label><label>Valor Unitário</label><label>Total</label><label>Status</label>` : `<label class="header-data">Data</label><label>Qtd</label><label>Insumo</label><label>Valor Unitário</label><label>Total</label><label>Status</label>`;
+            const headers = tipo === 'venda' ? `<label class="header-data">Data</label><label>Qtd</label><label>Produto</label><label>Comprador</label><label>Valor Unitário</label><label>Total</label><label>Status</label>` : `<label class="header-data">Data</label><label>Fornecedor</label><label>Qtd</label><label>Insumo</label><label>Valor Unitário</label><label>Total</label><label>Status</label>`;
             lancamentoBody.innerHTML = `<div class="modal-linha-header">${headers}</div>`;
             document.getElementById('btn-add-linha').style.display = dadosParaEditar ? 'none' : 'block';
             adicionarLinhaNoModal(tipo, dadosParaEditar || {});
@@ -420,13 +362,14 @@
             
             const campoProduto = `<input type="text" list="datalist-produtos" class="campo-produto" placeholder="Digite o produto" value="${dados.produto || ''}">`;
             const campoInsumo = `<input type="text" list="datalist-insumos" class="campo-insumo" placeholder="Digite o insumo" value="${dados.insumo || ''}">`;
+            const campoFornecedor = `<input type="text" list="datalist-fornecedores" class="campo-fornecedor" placeholder="Digite o fornecedor" value="${dados.fornecedor || ''}">`;
             const selects = {
                 comprador: criarSelect(dadosCadastro.compradores || [], dados.comprador),
                 status: criarSelect(['PAGO', 'A PAGAR'], dados.status || 'A PAGAR')
             };
             const campoValor = `<input type="text" inputmode="decimal" class="campo-valor" oninput="formatarInputComoMoeda(event)" placeholder="R$ 0,00" value="${dados.valor ? formatarMoeda(dados.valor) : ''}">`;
             const camposHtml = tipo === 'venda' ? `<input type="date" class="campo-data" value="${formatarDataParaInput(dados.data)}"><input type="number" placeholder="Qtd" class="campo-quantidade" value="${dados.quantidade || ''}">${campoProduto}${selects.comprador.outerHTML}${campoValor}<input type="text" placeholder="Total" class="campo-valor-total" disabled value="${dados.valorTotal ? formatarMoeda(dados.valorTotal) : ''}">${selects.status.outerHTML}`
-                : `<input type="date" class="campo-data" value="${formatarDataParaInput(dados.data)}"><input type="number" placeholder="Qtd" class="campo-quantidade" value="${dados.quantidade || ''}">${campoInsumo}${campoValor}<input type="text" placeholder="Total" class="campo-valor-total" disabled value="${dados.valorTotal ? formatarMoeda(dados.valorTotal) : ''}">${selects.status.outerHTML}`;
+                : `<input type="date" class="campo-data" value="${formatarDataParaInput(dados.data)}">${campoFornecedor}<input type="number" placeholder="Qtd" class="campo-quantidade" value="${dados.quantidade || ''}">${campoInsumo}${campoValor}<input type="text" placeholder="Total" class="campo-valor-total" disabled value="${dados.valorTotal ? formatarMoeda(dados.valorTotal) : ''}">${selects.status.outerHTML}`;
             
             const displayBotaoRemover = (elementos.modais.lancamento.dataset.mode === 'single' && !elementos.modais.lancamento.dataset.idEditado);
             div.innerHTML = camposHtml + `<button class="btn btn-danger btn-remover-linha" style="display:${displayBotaoRemover ? 'block' : 'none'}" onclick="this.parentElement.remove()">X</button>`;
@@ -469,6 +412,7 @@
             const valor = parseMoeda(linha.querySelector('.campo-valor').value);
             const produto = tipo === 'venda' ? linha.querySelector('.campo-produto').value.trim() : null;
             const insumo = tipo === 'gasto' ? linha.querySelector('.campo-insumo').value.trim() : null;
+            const fornecedor = tipo === 'gasto' ? linha.querySelector('.campo-fornecedor').value.trim() : null;
 
             if (!dataString || isNaN(quantidade) || !valor || (tipo === 'venda' && !produto) || (tipo === 'gasto' && !insumo)) {
                 showToast('Preencha todos os campos obrigatórios.', 'error'); return null;
@@ -477,7 +421,7 @@
             return {
                 data: new Date(dataString + 'T00:00:00'),
                 quantidade, valor, valorTotal: quantidade * valor,
-                produto, insumo,
+                produto, insumo, fornecedor,
                 comprador: tipo === 'venda' ? allSelects[0].value : null,
                 status: allSelects[allSelects.length - 1].value
             };
