@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Roça</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <style>
+      :root {
+        --cor-primaria: #6d28d9; --cor-destaque: #8b5cf6; --cor-fundo: #f5f3f7;
+        --cor-card: #ffffff; --cor-texto: #333; --sombra-card: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+      }
+      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-image: linear-gradient(to top, #f2f2f7, #e9e4f0); color: var(--cor-texto); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+      #loading { text-align: center; padding-top: 20vh; font-size: 1.2em; color: var(--cor-primaria); font-weight: bold; }
+      .container { width: 100%; max-width: 1200px; display: none; }
+      #access-denied { display: none; text-align: center; padding-top: 20vh; }
+      #access-denied h2 { font-size: 1.2em; color: var(--cor-primaria); font-weight: bold; }
+      #access-denied p { color: #333; }
+      .btn { background-color: var(--cor-primaria); color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-size: 1.1em; font-weight: bold; transition: background-color 0.2s; }
+      
+      header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 20px; padding: 0 10px; }
+      h1 { color: var(--cor-primaria); margin: 0; }
+      .card { background-color: var(--cor-card); border-radius: 12px; box-shadow: var(--sombra-card); padding: 25px; margin-bottom: 25px; }
+      .filtros-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; align-items: end; }
+      .filtro-item { display: flex; flex-direction: column; }
+      label { font-size: 0.9em; margin-bottom: 8px; font-weight: 500; color: #555; }
+      select, input { padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; background-color: #fff; width: 100%; box-sizing: border-box;}
+      select:focus, input:focus { outline: none; border-color: var(--cor-primaria); box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2); }
+      .botoes-acao { display: flex; gap: 10px; margin-bottom: 20px; }
+      .botoes-acao button, #gerarPdfBtn { flex-grow: 1; background-color: #e5e7eb; color: #374151; font-weight: bold; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; cursor: pointer; transition: background-color 0.2s; }
+      .botoes-acao button.ativo, #gerarPdfBtn { background-color: var(--cor-primaria); color: white; border-color: var(--cor-primaria); }
+      .botoes-acao button:hover, #gerarPdfBtn:hover { background-color: var(--cor-destaque); border-color: var(--cor-destaque); }
+      .resumo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; text-align: center; }
+      .resumo-item h3 { margin-top: 0; color: #555; font-weight: 500; }
+      .resumo-item p { font-size: 1.8em; font-weight: bold; margin: 0; }
+      .ganhos { color: #16a34a; } .gastos { color: #dc2626; } .saldo { color: var(--cor-primaria); }
+      .graficos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+      .error { color: #dc2626; font-weight: bold; }
+      nav { display: flex; align-items: center; gap: 20px; }
+      nav a { color: var(--cor-primaria); font-weight: bold; text-decoration: none; cursor: pointer; }
+      nav a.logout { color: #dc2626; }
+      #toast-notification { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 2000; left: 50%; transform: translateX(-50%); bottom: 30px; opacity: 0; transition: visibility 0.5s, opacity 0.5s linear; }
+      #toast-notification.show { visibility: visible; opacity: 1; }
+      #toast-notification.success { background-color: #16a34a; }
+      #toast-notification.error { background-color: #dc2626; }
+      #toast-notification.info { background-color: #3b82f6; }
+      @media (max-width: 900px) { .graficos-grid { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <style>
+    body {
+        padding-top: 70px; 
+    }
+    .main-navbar {
+        display: flex;
+        justify-content: space-between; /* Alinha os 3 blocos (esquerda, centro, direita) */
+        align-items: center;
+        gap: 20px;
+        background-color: #6d28d9;
+        padding: 10px 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1001;
+        box-sizing: border-box;
+    }
+    /* Blocos da navbar */
+    .navbar-left, .navbar-right {
+        flex: 1;
+    }
+    .navbar-center {
+        flex: 2;
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+    }
+    .navbar-right {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    /* Estilo da Logo */
+    .navbar-logo {
+        height: 45px;
+        width: auto;
+    }
+
+    /* Estilo dos Botões */
+    .main-navbar .nav-button {
+        background-color: transparent;
+        color: white;
+        border: 2px solid transparent;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-weight: bold;
+        font-size: 1em;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        white-space: nowrap; /* Impede que o texto quebre linha */
+    }
+    .main-navbar .nav-button:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.5);
+    }
+    .main-navbar .nav-button.logout {
+        background-color: rgba(220, 38, 38, 0.7);
+    }
+    .main-navbar .nav-button.logout:hover {
+        background-color: #dc2626;
+        border-color: transparent;
+    }
+</style>
+
+<nav class="main-navbar">
+    <div class="navbar-left">
+         <img src="https://i.postimg.cc/Qd98gFMF/Sistema-ARK.webp" alt="Logo" class="navbar-logo">
+    </div>
+    <div class="navbar-center">
+        <a href="javascript:void(0);" onclick="navigateToNavbar('BoasVindas')" class="nav-button">Início</a>
+        <a href="javascript:void(0);" onclick="navigateToNavbar('index')" class="nav-button">Dashboard</a>
+        <a href="javascript:void(0);" onclick="navigateToNavbar('lancamentos')" class="nav-button">Lançamentos</a>
+        <a href="javascript:void(0);" onclick="navigateToNavbar('cadastro')" class="nav-button">Cadastro</a>
+    </div>
+    <div class="navbar-right">
+        <a href="javascript:void(0);" onclick="handleLogoutNavbar()" class="nav-button logout">Sair</a>
+    </div>
+</nav>
+
+<script>
+    // Funções de navegação específicas para a Navbar, para evitar conflitos
+    function navigateToNavbar(page) {
+        // Esta linha pega o URL base da aplicação
+        const url = '<?= getScriptUrl() ?>';
+        // E aqui montamos o link corretamente
+        window.top.location.href = url + "?page=" + page;
+    }
+    function handleLogoutNavbar() {
+        const url = '<?= getScriptUrl() ?>';
+        localStorage.removeItem('isLoggedIn');
+        window.top.location.href = url + "?page=login";
+    }
+</script>
+
+<script>
+    function navbar_navigateTo(page) {
+        let url = '<?= getScriptUrl() ?>';
+        // Redireciona para 'index' sem o '?page=index' para uma URL mais limpa
+        if (page === 'index') {
+            window.top.location.href = url;
+        } else {
+            window.top.location.href = url + "?page=" + page;
+        }
+    }
+    function navbar_handleLogout() {
+        let url = '<?= getScriptUrl() ?>';
+        localStorage.removeItem('isLoggedIn');
+        window.top.location.href = url + "?page=login";
+    }
+</script>
+    
+    <div id="loading">Autenticando...</div>
+
+     <div id="access-denied">
+        <h2>Acesso Negado</h2>
+        <p>Você precisa fazer o login para acessar esta página.</p>
+        <button class="btn" onclick="navigateTo('login')">Ir para o Login</button>
+    </div>
+
+    <div class="container" id="main-container">
+        <header>
+            <h1>Sistemas ARK</h1>
+           
+        </header>
+      
+        <div class="card">
+          <div class="filtros-grid">
+            <div class="filtro-item"><label for="funcSelect">Funcionário</label><select id="funcSelect"></select></div>
+            <div class="filtro-item"><label for="dataInicio">De</label><input type="date" id="dataInicio"></div>
+            <div class="filtro-item"><label for="dataFim">Até</label><input type="date" id="dataFim"></div>
+          </div>
+        </div>
+        
+        <div id="botoes-visualizacao" class="botoes-acao">
+          <button id="btn-geral" class="ativo">Relatório Geral</button>
+          <button id="btn-vendas">Apenas Vendas</button>
+          <button id="btn-gastos">Apenas Gastos</button>
+        </div>
+        
+        <div id="filtros-contextuais-card" class="card">
+          <div class="filtros-grid">
+            <div class="filtro-item" id="filtro-produto"><label for="produtoFiltro">Produto</label><select id="produtoFiltro"></select></div>
+            <div class="filtro-item" id="filtro-comprador"><label for="compradorFiltro">Comprador</label><select id="compradorFiltro"></select></div>
+            <div class="filtro-item" id="filtro-insumo"><label for="insumoFiltro">Insumo</label><select id="insumoFiltro"></select></div>
+            <div class="filtro-item" id="filtro-status"><label for="statusFiltro">Status</label><select id="statusFiltro"></select></div>
+            <div class="filtro-item"><label>&nbsp;</label><button id="gerarPdfBtn">Gerar Fechamento</button></div>
+          </div>
+        </div>
+
+        <main id="dashboard-content" style="display:block;">
+          <div class="card resumo-grid">
+            <div class="resumo-item"><h3>Total Ganhos</h3><p id="resumoGanhos" class="ganhos">R$ 0,00</p></div>
+            <div class="resumo-item"><h3>Total Gastos</h3><p id="resumoGastos" class="gastos">R$ 0,00</p></div>
+            <div class="resumo-item"><h3>Saldo</h3><p id="resumoSaldo" class="saldo">R$ 0,00</p></div>
+          </div>
+          <div class="card graficos-grid">
+            <div><canvas id="graficoPrincipal"></canvas></div>
+            <div><canvas id="graficoSecundario"></canvas></div>
+          </div>
+        </main>
+    </div>
+
+    <div id="toast-notification"></div>
+
+    <script>
+        let scriptUrl = '<?= getScriptUrl() ?>';
+
+        window.addEventListener('load', () => {
+            if (localStorage.getItem('isLoggedIn') !== 'true') {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('access-denied').style.display = 'block';
+                return;
+            }
+            
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('main-container').style.display = 'block';
+            iniciarDashboard();
+        });
+
+        function navigateTo(page) {
+            window.top.location.href = scriptUrl + `?page=${page}`;
+        }
+        
+        function handleLogout() {
+            localStorage.removeItem('isLoggedIn');
+            window.top.location.replace(scriptUrl + '?page=login');
+        }
+        
+        function showToast(message, type = 'info', duration = 3000) {
+            const toast = document.getElementById('toast-notification');
+            if(!toast) return;
+            toast.textContent = message;
+            toast.className = 'show ' + type;
+            setTimeout(() => { toast.className = toast.className.replace('show', ''); }, duration);
+        }
+
+        let todosOsDados = [];
+        let dadosFiltrados = [];
+        let charts = {};
+        let tipoDeVisualizacao = 'GERAL';
+        let todosOsProdutosGlobais = [];
+        let todosOsInsumosGlobais = [];
+        let todosOsCompradoresGlobais = [];
+        let todosOsStatusGlobais = [];
+
+        function iniciarDashboard() {
+            document.querySelectorAll('select, input[type=date]').forEach(el => el.addEventListener('change', atualizarDashboard));
+            document.getElementById('btn-geral').addEventListener('click', () => setVisualizacao('GERAL'));
+            document.getElementById('btn-vendas').addEventListener('click', () => setVisualizacao('VENDAS'));
+            document.getElementById('btn-gastos').addEventListener('click', () => setVisualizacao('GASTOS'));
+            document.getElementById('gerarPdfBtn').addEventListener('click', gerarFechamento);
+
+            google.script.run.withSuccessHandler(onDadosCarregados).withFailureHandler(onFalhaNoCarregamento).getDadosIniciais();
+        }
+        
+        function onFalhaNoCarregamento(error) {
+           document.getElementById('main-container').innerHTML = `<div class="error" style="text-align:center;"><h3>Erro ao Carregar Dados</h3><p>${error.message}</p></div>`;
+        }
+
+        function onDadosCarregados(dadosIniciais) {
+            if (!dadosIniciais || !dadosIniciais.transacoes || dadosIniciais.transacoes.length === 0) {
+                document.getElementById('dashboard-content').innerHTML = '<p style="text-align:center; padding: 40px; color: #555;">Nenhum dado encontrado na planilha. Comece fazendo lançamentos!</p>';
+                return;
+            }
+            
+            todosOsDados = dadosIniciais.transacoes.map(d => ({...d, data: new Date(d.data)}));
+            
+            popularDropdown('funcSelect', dadosIniciais.funcionarios, 'Todos os Funcionários');
+            
+            todosOsProdutosGlobais = dadosIniciais.produtos;
+            todosOsInsumosGlobais = dadosIniciais.insumos;
+            todosOsCompradoresGlobais = dadosIniciais.compradores;
+            todosOsStatusGlobais = [...new Set(dadosIniciais.status)];
+            
+            popularDropdown('produtoFiltro', todosOsProdutosGlobais, 'Todos os Produtos');
+            popularDropdown('insumoFiltro', todosOsInsumosGlobais, 'Todos os Insumos');
+            popularDropdown('compradorFiltro', todosOsCompradoresGlobais, 'Todos os Compradores');
+            popularDropdown('statusFiltro', todosOsStatusGlobais, 'Todos os Status');
+            
+            atualizarDashboard();
+        }
+
+        function setVisualizacao(tipo) {
+            tipoDeVisualizacao = tipo;
+            document.getElementById('btn-geral').classList.toggle('ativo', tipo === 'GERAL');
+            document.getElementById('btn-vendas').classList.toggle('ativo', tipo === 'VENDAS');
+            document.getElementById('btn-gastos').classList.toggle('ativo', tipo === 'GASTOS');
+            atualizarDashboard();
+        }
+        
+        function popularDropdown(elementId, lista, opcaoTodos) {
+            const select = document.getElementById(elementId);
+            const valorAntigo = select.value;
+            select.innerHTML = `<option value="TODOS">${opcaoTodos}</option>`;
+            lista.sort((a, b) => String(a).localeCompare(String(b))).forEach(item => {
+                if(item) select.innerHTML += `<option value="${item}">${item}</option>`;
+            });
+            select.value = lista.includes(valorAntigo) ? valorAntigo : 'TODOS';
+        }
+        
+        function gerenciarVisibilidadeFiltros() {
+            document.getElementById('filtro-produto').style.display = (tipoDeVisualizacao === 'GASTOS') ? 'none' : 'flex';
+            document.getElementById('filtro-comprador').style.display = (tipoDeVisualizacao === 'GASTOS') ? 'none' : 'flex';
+            document.getElementById('filtro-insumo').style.display = (tipoDeVisualizacao === 'VENDAS') ? 'none' : 'flex';
+        }
+
+        function atualizarFiltrosCascata() {
+            const funcFiltro = document.getElementById('funcSelect').value;
+            let dadosBase = (funcFiltro === 'TODOS') ? todosOsDados : todosOsDados.filter(d => d.funcionario === funcFiltro);
+            
+            let produtos = [...new Set(dadosBase.filter(d => d.tipo === 'venda' && d.produto).map(d => d.produto))];
+            let insumos = [...new Set(dadosBase.filter(d => d.tipo === 'gasto' && d.insumo).map(d => d.insumo))];
+            let compradores = [...new Set(dadosBase.filter(d => d.tipo === 'venda' && d.comprador).map(d => d.comprador))];
+            
+            popularDropdown('produtoFiltro', produtos, 'Todos os Produtos');
+            popularDropdown('insumoFiltro', insumos, 'Todos os Insumos');
+            popularDropdown('compradorFiltro', compradores, 'Todos os Compradores');
+        }
+
+        function atualizarDashboard(event) {
+            if (event && event.target.id === 'funcSelect') {
+              if (document.getElementById('funcSelect').value === 'TODOS') {
+                setVisualizacao('GERAL');
+              }
+              atualizarFiltrosCascata(); 
+            }
+            
+            gerenciarVisibilidadeFiltros();
+
+            const funcFiltro = document.getElementById('funcSelect').value;
+            const inicioFiltro = document.getElementById('dataInicio').value ? new Date(document.getElementById('dataInicio').value + 'T00:00:00Z') : null;
+            const fimFiltro = document.getElementById('dataFim').value ? new Date(document.getElementById('dataFim').value + 'T23:59:59Z') : null;
+            const produtoFiltro = document.getElementById('produtoFiltro').value;
+            const insumoFiltro = document.getElementById('insumoFiltro').value;
+            const compFiltro = document.getElementById('compradorFiltro').value;
+            const statusFiltro = document.getElementById('statusFiltro').value;
+
+            dadosFiltrados = todosOsDados.filter(d => {
+              if (funcFiltro !== 'TODOS' && d.funcionario !== funcFiltro) return false;
+              if (inicioFiltro && d.data < inicioFiltro) return false;
+              if (fimFiltro && d.data > fimFiltro) return false;
+              if (tipoDeVisualizacao === 'VENDAS' && d.tipo !== 'venda') return false;
+              if (tipoDeVisualizacao === 'GASTOS' && d.tipo !== 'gasto') return false;
+              if (d.tipo === 'venda') {
+                if (produtoFiltro !== 'TODOS' && d.produto !== produtoFiltro) return false;
+                if (compFiltro !== 'TODOS' && d.comprador !== compFiltro) return false;
+              } else if (d.tipo === 'gasto') {
+                if (insumoFiltro !== 'TODOS' && d.insumo !== insumoFiltro) return false;
+              }
+              if (statusFiltro !== 'TODOS' && d.status !== statusFiltro) return false;
+              return true;
+            });
+
+            atualizarResumo(dadosFiltrados);
+            atualizarGraficos(dadosFiltrados);
+        }
+        
+        function formatarMoeda(valor) { return (Number(valor) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+
+        function atualizarResumo(dados) {
+            const ganhos = dados.filter(d => d.tipo === 'venda').reduce((acc, d) => acc + (Number(d.valorTotal) || 0), 0);
+            const gastos = dados.filter(d => d.tipo === 'gasto').reduce((acc, d) => acc + (Number(d.valorTotal) || 0), 0);
+            document.getElementById('resumoGanhos').textContent = formatarMoeda(ganhos);
+            document.getElementById('resumoGastos').textContent = formatarMoeda(gastos);
+            document.getElementById('resumoSaldo').textContent = formatarMoeda(ganhos - gastos);
+        }
+
+        function atualizarGraficos(dados) {
+            const vendasPorProduto = {};
+            const gastosPorInsumo = {}; 
+            const statusCount = {};
+
+            let dadosParaGraficos = dados;
+            if (tipoDeVisualizacao === 'VENDAS') dadosParaGraficos = dados.filter(d => d.tipo === 'venda');
+            else if (tipoDeVisualizacao === 'GASTOS') dadosParaGraficos = dados.filter(d => d.tipo === 'gasto');
+
+            dadosParaGraficos.forEach(d => {
+                if (d.tipo === 'venda' && d.produto) vendasPorProduto[d.produto] = (vendasPorProduto[d.produto] || 0) + (Number(d.valorTotal) || 0);
+                if (d.tipo === 'gasto' && d.insumo) gastosPorInsumo[d.insumo] = (gastosPorInsumo[d.insumo] || 0) + (Number(d.valorTotal) || 0);
+                if (d.status) statusCount[d.status] = (statusCount[d.status] || 0) + 1;
+            });
+
+            let primaryChartLabels, primaryChartData, primaryChartTitle;
+            if (tipoDeVisualizacao === 'VENDAS') {
+              primaryChartLabels = Object.keys(vendasPorProduto);
+              primaryChartData = Object.values(vendasPorProduto);
+              primaryChartTitle = 'Vendas por Produto';
+            } else if (tipoDeVisualizacao === 'GASTOS') {
+              primaryChartLabels = Object.keys(gastosPorInsumo);
+              primaryChartData = Object.values(gastosPorInsumo);
+              primaryChartTitle = 'Gastos por Insumo';
+            } else { 
+              primaryChartLabels = Object.keys(vendasPorProduto); 
+              primaryChartData = Object.values(vendasPorProduto);
+              primaryChartTitle = 'Vendas por Produto (Geral)'; 
+            }
+
+            renderizarGrafico('graficoPrincipal', 'bar', {
+              labels: primaryChartLabels,
+              datasets: [{ label: primaryChartTitle, data: primaryChartData, backgroundColor: '#8b5cf6'}]
+            }, primaryChartTitle);
+            
+            renderizarGrafico('graficoSecundario', 'doughnut', {
+              labels: Object.keys(statusCount),
+              datasets: [{ data: Object.values(statusCount), backgroundColor: ['#16a34a', '#dc2626', '#f59e0b', '#3b82f6', '#7c3aed'] }]
+            }, 'Contagem por Status');
+        }
+        
+        function renderizarGrafico(canvasId, tipo, dados, titulo) {
+            if (charts[canvasId]) charts[canvasId].destroy();
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            charts[canvasId] = new Chart(ctx, { type: tipo, data: dados, options: { responsive: true, plugins: { title: { display: true, text: titulo, font: { size: 16 } } } } });
+        }
+
+        function gerarFechamento() {
+    if (dadosFiltrados.length === 0) {
+        showToast('Não há dados para gerar o relatório.', 'error');
+        return;
+    }
+    const nomeFuncionario = document.getElementById('funcSelect').value;
+    const nomeComprador = document.getElementById('compradorFiltro').value; 
+    
+    // NOVO: Captura o nome do cliente a partir do H1 principal
+    const nomeCliente = document.querySelector('.container > header h1').textContent;
+
+    const dadosParaEnviar = dadosFiltrados.map(d => ({...d, data: d.data.toISOString()}));
+
+    document.getElementById('gerarPdfBtn').disabled = true;
+    document.getElementById('gerarPdfBtn').textContent = 'Gerando...';
+    google.script.run
+        .withSuccessHandler(htmlRelatorio => {
+            const blob = new Blob([htmlRelatorio], {type: 'text/html; charset=utf-8'});
+            const url = URL.createObjectURL(blob);
+            window.open(url, '_blank');
+            showToast('Relatório gerado com sucesso!', 'success', 5000);
+            document.getElementById('gerarPdfBtn').disabled = false;
+            document.getElementById('gerarPdfBtn').textContent = 'Gerar Fechamento';
+        })
+        .withFailureHandler((err) => {
+            showToast('Falha ao gerar o relatório: ' + err.message, 'error');
+            document.getElementById('gerarPdfBtn').disabled = false;
+            document.getElementById('gerarPdfBtn').textContent = 'Gerar Fechamento';
+        })
+        // NOVO: Envia o nome do cliente como um novo argumento
+        .gerarPaginaDeFechamento(dadosParaEnviar, nomeFuncionario, nomeComprador, tipoDeVisualizacao, nomeCliente); 
+}
+    </script>
+  </body>
+</html>

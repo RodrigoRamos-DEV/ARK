@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <base target="_top">
+    <title>Login - Dashboard Roça</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root { --cor-primaria: #6d28d9; --cor-destaque: #8b5cf6; --cor-fundo: #f5f3f7; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-image: linear-gradient(to top, #f2f2f7, #e9e4f0); margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .login-card { background-color: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        h1 { color: var(--cor-primaria); margin-bottom: 30px; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        label { font-weight: 500; color: #555; display: block; margin-bottom: 8px; }
+        input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 1em; box-sizing: border-box; }
+        .btn { background-color: var(--cor-primaria); color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; cursor: pointer; font-size: 1.1em; font-weight: bold; transition: background-color 0.2s; }
+        .btn:disabled { background-color: #9ca3af; }
+        .btn:hover:not(:disabled) { background-color: var(--cor-destaque); }
+        .links-container { display: flex; justify-content: space-between; margin-top: 20px; font-size: 0.9em; }
+        .links-container a { color: var(--cor-primaria); text-decoration: none; font-weight: bold; cursor: pointer; }
+        .error-message { color: #dc2626; font-weight: bold; margin-top: 15px; display: none; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h1>Sistemas ARK</h1>
+        <div class="input-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" required>
+        </div>
+        <div class="input-group">
+            <label for="password">Senha</label>
+            <input type="password" id="password" required>
+        </div>
+        <button id="loginBtn" class="btn">Entrar</button>
+        <p id="errorMessage" class="error-message"></p>
+        <div class="links-container">
+            <a id="registerLink">Não tem conta? Cadastre-se</a>
+            <a id="forgotPasswordLink">Esqueci minha senha</a>
+        </div>
+    </div>
+
+    <script>
+        let scriptUrl = '<?= getScriptUrl() ?>';
+
+        function navigateTo(page) {
+            window.top.location.href = scriptUrl + '?page=' + page;
+        }
+        
+        document.getElementById('registerLink').addEventListener('click', () => navigateTo('register'));
+        document.getElementById('forgotPasswordLink').addEventListener('click', () => navigateTo('forgot'));
+        document.getElementById('loginBtn').addEventListener('click', handleLogin);
+        document.getElementById('password').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                handleLogin();
+            }
+        });
+
+
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function handleLogin() {
+            const email = document.getElementById('email').value.trim().toLowerCase();
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            if (!email || !password) {
+                errorMessage.textContent = "Por favor, preencha todos os campos.";
+                errorMessage.style.display = 'block';
+                return;
+            }
+
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Verificando...';
+            errorMessage.style.display = 'none';
+
+            const hashedPassword = await hashPassword(password);
+
+            google.script.run
+                .withSuccessHandler(response => {
+                    if (response.success) {
+                        localStorage.setItem('isLoggedIn', 'true');
+                        window.top.location.replace(scriptUrl); // Redireciona para a página principal
+                    } else {
+                        errorMessage.textContent = response.error;
+                        errorMessage.style.display = 'block';
+                        loginBtn.disabled = false;
+                        loginBtn.textContent = 'Entrar';
+                    }
+                })
+                .withFailureHandler(err => {
+                     errorMessage.textContent = "Erro de comunicação. Tente novamente.";
+                     errorMessage.style.display = 'block';
+                     loginBtn.disabled = false;
+                     loginBtn.textContent = 'Entrar';
+                })
+                .verificarLogin(email, hashedPassword);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <base target="_top">
+    <title>Área de Cadastro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --cor-primaria: #6d28d9; --cor-destaque: #8b5cf6; --cor-fundo: #f5f3f7; --cor-card: #ffffff;
+            --cor-texto: #333; --sombra-card: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --cor-erro: #dc2626;
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-image: linear-gradient(to top, #f2f2f7, #e9e4f0); color: var(--cor-texto); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        #loading { text-align: center; padding-top: 20vh; font-size: 1.2em; color: var(--cor-primaria); font-weight: bold; }
+        .container { width: 100%; max-width: 900px; display: none; }
+        header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 20px; padding: 0 10px; }
+        h1 { color: var(--cor-primaria); margin: 0; }
+        .card { background-color: var(--cor-card); border-radius: 12px; box-shadow: var(--sombra-card); padding: 25px; margin-bottom: 25px; }
+        .grid-cadastro { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; }
+        .form-cadastro { display: flex; gap: 10px; margin-bottom: 15px; }
+        input, select { flex-grow: 1; min-width: 0; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; box-sizing: border-box; }
+        .btn { background-color: var(--cor-primaria); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; transition: background-color 0.2s; }
+        .btn-danger { background-color: var(--cor-erro); }
+        .btn:disabled { background-color: #9ca3af; cursor: not-allowed; }
+        .form-cadastro .btn { flex-shrink: 0; }
+        .btn:hover:not(:disabled) { background-color: var(--cor-destaque); }
+        .lista-itens { list-style: none; padding: 0; max-height: 300px; overflow-y: auto; border-top: 1px solid #eee; }
+        li { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
+        li:nth-child(odd) { background-color: #f9f8fa; }
+        .item-acoes button { background: none; border: none; cursor: pointer; padding: 5px; opacity: 0.6; font-size: 16px; }
+        .item-acoes button:hover { opacity: 1; color: var(--cor-primaria); }
+        nav { display: flex; gap: 20px; }
+        nav a { color: var(--cor-primaria); font-weight: bold; text-decoration: none; cursor: pointer; }
+        nav a.logout { color: #dc2626; }
+        .loader { text-align: center; padding: 20px; color: #999; }
+        #access-denied { display: none; text-align: center; padding-top: 20vh; }
+      #access-denied h2 { font-size: 1.2em; color: var(--cor-primaria); font-weight: bold; }
+      #access-denied p { color: #333; }
+      .btn { background-color: var(--cor-primaria); color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-size: 1.1em; font-weight: bold; transition: background-color 0.2s; }
+      
+        .modal-overlay-hidden { display: none !important; }
+        #custom-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        #custom-modal-box { background: var(--cor-card); padding: 25px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); width: 90%; max-width: 450px; text-align: center; }
+        #custom-modal-title { margin-top: 0; color: var(--cor-primaria); font-size: 1.4em; }
+        #custom-modal-body input { width: 100%; box-sizing: border-box; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; margin-top: 10px; }
+        #custom-modal-footer { margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px; }
+        .btn-secundario { background-color: #e5e7eb; color: #374151; border: 1px solid #ccc; padding: 10px 15px; border-radius: 6px; cursor: pointer; }
+         #access-denied { display: none; text-align: center; padding-top: 20vh; font-size: 1.2em; color: var(--cor-primaria); font-weight: bold; }
+      #access-denied p { color: #333; }
+      .btn { background-color: var(--cor-primaria); color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-size: 1.1em; font-weight: bold; }
+    
+    </style>
+</head>
+<body>
+  <style>
+    body {
+        padding-top: 70px; 
+    }
+    .main-navbar {
+        display: flex;
+        justify-content: space-between; /* Alinha os 3 blocos (esquerda, centro, direita) */
+        align-items: center;
+        gap: 20px;
+        background-color: #6d28d9;
+        padding: 10px 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1001;
+        box-sizing: border-box;
+    }
+    /* Blocos da navbar */
+    .navbar-left, .navbar-right {
+        flex: 1;
+    }
+    .navbar-center {
+        flex: 2;
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+    }
+    .navbar-right {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    /* Estilo da Logo */
+    .navbar-logo {
+        height: 45px;
+        width: auto;
+    }
+
+    /* Estilo dos Botões */
+    .main-navbar .nav-button {
+        background-color: transparent;
+        color: white;
+        border: 2px solid transparent;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-weight: bold;
+        font-size: 1em;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        white-space: nowrap; /* Impede que o texto quebre linha */
+    }
+    .main-navbar .nav-button:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.5);
+    }
+    .main-navbar .nav-button.logout {
+        background-color: rgba(220, 38, 38, 0.7);
+    }
+    .main-navbar .nav-button.logout:hover {
+        background-color: #dc2626;
+        border-color: transparent;
+    }
+</style>
+
+<nav class="main-navbar">
+    <div class="navbar-left">
+         <img src="https://i.postimg.cc/Qd98gFMF/Sistema-ARK.webp" alt="Logo" class="navbar-logo">
+    </div>
+    <div class="navbar-center">
+        <a href="javascript:void(0);" onclick="navigateToNavbar('BoasVindas')" class="nav-button">Início</a>
+        <a href="javascript:void(0);" onclick="navigateToNavbar('index')" class="nav-button">Dashboard</a>
+        <a href="javascript:void(0);" onclick="navigateToNavbar('lancamentos')" class="nav-button">Lançamentos</a>
+        <a href="javascript:void(0);" onclick="navigateToNavbar('cadastro')" class="nav-button">Cadastro</a>
+    </div>
+    <div class="navbar-right">
+        <a href="javascript:void(0);" onclick="handleLogoutNavbar()" class="nav-button logout">Sair</a>
+    </div>
+</nav>
+
+<script>
+    // Funções de navegação específicas para a Navbar, para evitar conflitos
+    function navigateToNavbar(page) {
+        // Esta linha pega o URL base da aplicação
+        const url = '<?= getScriptUrl() ?>';
+        // E aqui montamos o link corretamente
+        window.top.location.href = url + "?page=" + page;
+    }
+    function handleLogoutNavbar() {
+        const url = '<?= getScriptUrl() ?>';
+        localStorage.removeItem('isLoggedIn');
+        window.top.location.href = url + "?page=login";
+    }
+</script>
+
+<script>
+    function navbar_navigateTo(page) {
+        let url = '<?= getScriptUrl() ?>';
+        // Redireciona para 'index' sem o '?page=index' para uma URL mais limpa
+        if (page === 'index') {
+            window.top.location.href = url;
+        } else {
+            window.top.location.href = url + "?page=" + page;
+        }
+    }
+    function navbar_handleLogout() {
+        let url = '<?= getScriptUrl() ?>';
+        localStorage.removeItem('isLoggedIn');
+        window.top.location.href = url + "?page=login";
+    }
+</script>
+    <div id="loading">Autenticando...</div>
+
+    <div id="access-denied">
+        <h2>Acesso Negado</h2>
+        <p>Você precisa fazer o login para acessar esta página.</p>
+        <button class="btn" onclick="navigateTo('login')">Ir para o Login</button>
+    </div>
+
+    <div class="container" id="main-container">
+        
+
+        <div class="grid-cadastro">
+            <div class="card">
+                <h2>Produtos</h2>
+                <div class="form-cadastro"><input type="text" id="input-produto" placeholder="Novo produto"><button class="btn" onclick="adicionar('produto')">Adicionar</button></div>
+                <ul id="lista-produtos" class="lista-itens"><div class="loader">Carregando...</div></ul>
+            </div>
+            <div class="card">
+                <h2>Compradores</h2>
+                <div class="form-cadastro"><input type="text" id="input-comprador" placeholder="Novo comprador"><button class="btn" onclick="adicionar('comprador')">Adicionar</button></div>
+                <ul id="lista-compradores" class="lista-itens"><div class="loader">Carregando...</div></ul>
+            </div>
+            <div class="card">
+                <h2>Insumos</h2>
+                <div class="form-cadastro"><input type="text" id="input-insumo" placeholder="Novo insumo"><button class="btn" onclick="adicionar('insumo')">Adicionar</button></div>
+                <ul id="lista-insumos" class="lista-itens"><div class="loader">Carregando...</div></ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Gerenciar Funcionários</h2>
+            <div class="form-cadastro">
+                <input type="text" id="input-novo-funcionario" placeholder="Nome do novo funcionário">
+                <button class="btn" onclick="adicionarNovoFuncionario()">Criar Funcionário e Aba</button>
+            </div>
+            <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
+            <div class="form-cadastro">
+                <select id="select-funcionario-gerenciar" style="flex-grow: 1;"></select>
+                <button class="btn btn-danger" onclick="confirmarDeletarFuncionario()">Deletar Funcionário</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="custom-modal-overlay" class="modal-overlay-hidden">
+        <div id="custom-modal-box">
+            <h3 id="custom-modal-title"></h3>
+            <div id="custom-modal-body">
+                <p id="custom-modal-text"></p>
+                <input type="text" id="custom-modal-input" style="display: none;" />
+            </div>
+            <div id="custom-modal-footer">
+                <button id="custom-modal-btn-cancel" class="btn btn-secundario">Cancelar</button>
+                <button id="custom-modal-btn-confirm" class="btn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let scriptUrl = '<?= getScriptUrl() ?>';
+
+        window.addEventListener('load', () => {
+            if (localStorage.getItem('isLoggedIn') !== 'true') {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('access-denied').style.display = 'block';
+                return;
+            }
+            
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('main-container').style.display = 'block';
+
+            carregarDados();
+            carregarFuncionariosParaGerenciar();
+        });
+
+
+         function navigateTo(page) {
+            window.top.location.href = scriptUrl + (page === 'index' ? '' : `?page=${page}`);
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('isLoggedIn');
+            navigateTo('login');
+        }
+
+        const modal = {
+            overlay: document.getElementById('custom-modal-overlay'),
+            title: document.getElementById('custom-modal-title'),
+            text: document.getElementById('custom-modal-text'),
+            input: document.getElementById('custom-modal-input'),
+            btnConfirm: document.getElementById('custom-modal-btn-confirm'),
+            btnCancel: document.getElementById('custom-modal-btn-cancel')
+        };
+
+        let modalCallback = null;
+
+        function showCustomModal(options = {}) {
+            const { title = 'Aviso', text = '', type = 'alert', placeholder = '', callback = null } = options;
+            if (!modal.overlay) return;
+            modal.title.textContent = title;
+            modal.text.textContent = text;
+            modalCallback = (typeof callback === 'function') ? callback : null;
+            modal.input.style.display = type === 'prompt' ? 'block' : 'none';
+            modal.input.value = '';
+            modal.input.placeholder = placeholder;
+            modal.btnCancel.style.display = type !== 'alert' ? 'inline-block' : 'none';
+            modal.overlay.classList.remove('modal-overlay-hidden');
+            if (type === 'prompt') modal.input.focus();
+        }
+
+        function hideCustomModal() {
+            if (!modal.overlay) return;
+            modal.overlay.classList.add('modal-overlay-hidden');
+            modalCallback = null;
+        }
+
+        modal.btnConfirm.addEventListener('click', () => {
+            if (modalCallback) {
+                const inputValue = modal.input.style.display === 'block' ? modal.input.value : true;
+                modalCallback(inputValue);
+            }
+            hideCustomModal();
+        });
+
+        modal.btnCancel.addEventListener('click', hideCustomModal);
+        modal.overlay.addEventListener('click', (e) => { if (e.target === modal.overlay) hideCustomModal(); });
+
+        function carregarDados() {
+            google.script.run.withSuccessHandler(onDadosCarregados).getDadosCadastro();
+        }
+
+        function onDadosCarregados(dados) {
+            if (dados.erro) {
+                showCustomModal({ title: 'Erro', text: "Erro ao carregar dados: " + dados.erro, type: 'alert' });
+                return;
+            }
+            displayItens('produtos', dados.produtos || []);
+            displayItens('compradores', dados.compradores || []);
+            displayItens('insumos', dados.insumos || []);
+        }
+
+        function displayItens(tipoPlural, lista) {
+            const ul = document.getElementById(`lista-${tipoPlural}`);
+            ul.innerHTML = '';
+            if (lista.length === 0) {
+                ul.innerHTML = '<li>Nenhum item cadastrado.</li>';
+                return;
+            }
+            const tipoSingular = { produtos: 'produto', compradores: 'comprador', insumos: 'insumo' }[tipoPlural];
+            lista.sort((a,b) => a.localeCompare(b)).forEach(item => {
+                const li = document.createElement('li');
+                li.innerHTML = `<span>${item}</span><div class="item-acoes"><button title="Editar" onclick="editar('${tipoSingular}', '${item}')">✏️</button><button title="Excluir" onclick="excluir('${tipoSingular}', '${item}')">🗑️</button></div>`;
+                ul.appendChild(li);
+            });
+        }
+
+        function adicionar(tipo) {
+            const input = document.getElementById(`input-${tipo}`);
+            const valor = input.value.trim();
+            if (!valor) {
+                showCustomModal({ title: 'Atenção', text: 'Por favor, digite um valor.', type: 'alert' });
+                return;
+            }
+            input.disabled = true;
+            input.nextElementSibling.disabled = true;
+            google.script.run.withSuccessHandler(resultado => {
+                input.disabled = false;
+                input.nextElementSibling.disabled = false;
+                input.value = '';
+                if (resultado.sucesso) {
+                    carregarDados();
+                } else {
+                    showCustomModal({ title: 'Erro', text: resultado.erro, type: 'alert' });
+                }
+            }).adicionarItem(tipo, valor);
+        }
+
+        function editar(tipo, valorAntigo) {
+            showCustomModal({
+                title: `Editar ${tipo}`,
+                text: `Digite o novo nome para "${valorAntigo}":`,
+                type: 'prompt',
+                placeholder: valorAntigo,
+                callback: (valorNovo) => {
+                    if (valorNovo && valorNovo.trim() !== valorAntigo) {
+                        google.script.run.withSuccessHandler(resultado => {
+                            if (resultado.sucesso) carregarDados();
+                            else showCustomModal({ title: 'Erro', text: resultado.erro, type: 'alert' });
+                        }).editarItem(tipo, valorAntigo, valorNovo.trim());
+                    }
+                }
+            });
+        }
+
+        function excluir(tipo, valor) {
+            showCustomModal({
+                title: 'Confirmar Exclusão',
+                text: `Tem certeza que deseja excluir o ${tipo} "${valor}"? Esta ação não pode ser desfeita.`,
+                type: 'confirm',
+                callback: (confirmado) => {
+                    if (confirmado) {
+                        google.script.run.withSuccessHandler(resultado => {
+                            if (resultado.sucesso) carregarDados();
+                            else showCustomModal({ title: 'Erro', text: resultado.erro, type: 'alert' });
+                        }).excluirItem(tipo, valor);
+                    }
+                }
+            });
+        }
+
+        function carregarFuncionariosParaGerenciar() {
+            google.script.run.withSuccessHandler(funcionarios => {
+                const select = document.getElementById('select-funcionario-gerenciar');
+                const valorAtual = select.value;
+                select.innerHTML = '<option value="">Selecione um funcionário</option>';
+                funcionarios.forEach(f => {
+                    const selected = f === valorAtual ? 'selected' : '';
+                    select.innerHTML += `<option value="${f}" ${selected}>${f}</option>`;
+                });
+            }).getFuncionarios();
+        }
+
+        function adicionarNovoFuncionario() {
+            const input = document.getElementById('input-novo-funcionario');
+            const nomeFuncionario = input.value.trim();
+            if (!nomeFuncionario) {
+                showCustomModal({ title: 'Atenção', text: 'Por favor, digite o nome do novo funcionário.', type: 'alert' });
+                return;
+            }
+            const btnAdicionar = input.nextElementSibling;
+            input.disabled = true;
+            btnAdicionar.disabled = true;
+            btnAdicionar.textContent = 'Criando...';
+            google.script.run.withSuccessHandler(resultado => {
+                input.disabled = false;
+                btnAdicionar.disabled = false;
+                btnAdicionar.textContent = 'Criar Funcionário e Aba';
+                input.value = '';
+                if (resultado.sucesso) {
+                    showCustomModal({ title: 'Sucesso!', text: resultado.mensagem, type: 'alert' });
+                    carregarFuncionariosParaGerenciar();
+                } else {
+                    showCustomModal({ title: 'Erro', text: resultado.erro, type: 'alert' });
+                }
+            }).adicionarFuncionario(nomeFuncionario);
+        }
+
+        function confirmarDeletarFuncionario() {
+            const select = document.getElementById('select-funcionario-gerenciar');
+            const nomeFuncionario = select.value;
+            if (!nomeFuncionario) {
+                showCustomModal({ title: 'Atenção', text: 'Por favor, selecione um funcionário para deletar.', type: 'alert' });
+                return;
+            }
+            showCustomModal({
+                title: 'AÇÃO IRREVERSÍVEL!',
+                text: `Você está prestes a deletar o funcionário "${nomeFuncionario}" e todos os seus dados. Para confirmar, digite o nome do funcionário abaixo:`,
+                type: 'prompt',
+                placeholder: 'Digite o nome para confirmar',
+                callback: (confirmacao) => {
+                    if (confirmacao === nomeFuncionario) {
+                        const btnDeletar = select.nextElementSibling;
+                        select.disabled = true;
+                        btnDeletar.disabled = true;
+                        btnDeletar.textContent = 'Deletando...';
+                        google.script.run.withSuccessHandler(resultado => {
+                            select.disabled = false;
+                            btnDeletar.disabled = false;
+                            btnDeletar.textContent = 'Deletar Funcionário';
+                            if (resultado.sucesso) {
+                                showCustomModal({ title: 'Sucesso', text: resultado.mensagem, type: 'alert' });
+                                carregarFuncionariosParaGerenciar();
+                            } else {
+                                showCustomModal({ title: 'Erro', text: resultado.erro, type: 'alert' });
+                            }
+                        }).deletarFuncionario(nomeFuncionario);
+                    } else if(confirmacao !== null) {
+                         showCustomModal({ title: 'Ação Cancelada', text: 'O nome digitado não confere.', type: 'alert' });
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
