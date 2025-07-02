@@ -73,18 +73,18 @@
     </nav>
 
     <script>
+        const authToken = '<?= authToken ?>'; 
         function navigateToNavbar(page) {
             const baseUrl = '<?= getScriptUrl() ?>';
-            window.top.location.href = baseUrl + "?page=" + page;
+            window.top.location.href = baseUrl + "?page=" + page + "&authToken=" + authToken;
         }
         function handleLogoutNavbar() {
             const baseUrl = '<?= getScriptUrl() ?>';
-            localStorage.removeItem('isLoggedIn');
             window.top.location.href = baseUrl + "?page=login";
         }
     </script>
     
-    <div id="loading">Autenticando...</div>
+    <div id="loading">Carregando dados...</div>
 
      <div id="access-denied">
         <h2>Acesso Negado</h2>
@@ -139,12 +139,6 @@
 
     <script>
         window.addEventListener('load', () => {
-            if (localStorage.getItem('isLoggedIn') !== 'true') {
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('access-denied').style.display = 'block';
-                return;
-            }
-            
             document.getElementById('loading').style.display = 'none';
             document.getElementById('main-container').style.display = 'block';
             iniciarDashboard();
@@ -175,7 +169,7 @@
             document.getElementById('btn-gastos').addEventListener('click', () => setVisualizacao('GASTOS'));
             document.getElementById('gerarPdfBtn').addEventListener('click', gerarFechamento);
 
-            google.script.run.withSuccessHandler(onDadosCarregados).withFailureHandler(onFalhaNoCarregamento).getDadosIniciais();
+            google.script.run.withSuccessHandler(onDadosCarregados).withFailureHandler(onFalhaNoCarregamento).getDadosIniciais(authToken);
         }
         
         function onFalhaNoCarregamento(error) {
@@ -183,7 +177,11 @@
         }
 
         function onDadosCarregados(dadosIniciais) {
-            if (!dadosIniciais || !dadosIniciais.transacoes || dadosIniciais.transacoes.length === 0) {
+            if (dadosIniciais.erro || !dadosIniciais.transacoes) {
+                document.getElementById('main-container').innerHTML = `<div class="error" style="text-align:center;"><h3>Erro ao Carregar Dados</h3><p>${dadosIniciais.erro || 'Não foi possível carregar os dados.'}</p></div>`;
+                return;
+            }
+            if (dadosIniciais.transacoes.length === 0) {
                 document.getElementById('dashboard-content').innerHTML = '<p style="text-align:center; padding: 40px; color: #555;">Nenhum dado encontrado na planilha. Comece fazendo lançamentos!</p>';
                 return;
             }
@@ -370,7 +368,7 @@
                     document.getElementById('gerarPdfBtn').disabled = false;
                     document.getElementById('gerarPdfBtn').textContent = 'Gerar Fechamento';
                 })
-                .gerarPaginaDeFechamento(dadosParaEnviar, nomeFuncionario, nomeComprador, tipoDeVisualizacao, nomeCliente); 
+                .gerarPaginaDeFechamento(authToken, dadosParaEnviar, nomeFuncionario, nomeComprador, tipoDeVisualizacao, nomeCliente); 
         }
     </script>
   </body>

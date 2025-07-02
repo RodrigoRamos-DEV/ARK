@@ -7,20 +7,38 @@ const NOME_ABA_DADOS = "DADOS";
 const NOME_ABA_MODELO = "MODELO";
 
 // =================================================================
-// ROTEAMENTO E SERVIÇO DE PÁGINAS HTML
+// ROTEAMENTO E SERVIÇO DE PÁGINAS HTML (COM AUTENTICAÇÃO)
 // =================================================================
 function doGet(e) {
-  // Define 'BoasVindas' como a página padrão se nenhum parâmetro 'page' for encontrado
   const page = e.parameter.page || 'BoasVindas'; 
-  let template;
+  const authToken = e.parameter.authToken;
+  const paginasPublicas = ['login', 'register', 'forgot', 'reset'];
 
-  // O switch case para carregar o template correto
+  // Se a página NÃO é pública E o token é inválido, redireciona para o login
+  if (!paginasPublicas.includes(page) && !isTokenValido(authToken)) {
+    return HtmlService.createTemplateFromFile('Login.html') 
+      .evaluate()
+      .setTitle("Sistemas ARK")
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  }
+
+  let template;
   switch(page) {
-    case 'BoasVindas': // Adicionamos o case explícito para a nova página
+    case 'BoasVindas':
       template = HtmlService.createTemplateFromFile('BoasVindas.html');
       break;
-    case 'index': // A página do Dashboard (Controle Financeiro) continua a existir
+    case 'index':
       template = HtmlService.createTemplateFromFile('Index.html');
+      break;
+    case 'lancamentos':
+      template = HtmlService.createTemplateFromFile('Lancamentos.html');
+      break;
+    case 'cadastro':
+      template = HtmlService.createTemplateFromFile('Cadastro.html');
+      break;
+    // Cases para páginas públicas
+    case 'login':
+      template = HtmlService.createTemplateFromFile('Login.html');
       break;
     case 'register':
       template = HtmlService.createTemplateFromFile('Register.html');
@@ -30,40 +48,32 @@ function doGet(e) {
       break;
     case 'reset':
       template = HtmlService.createTemplateFromFile('ResetPassword.html');
-      template.token = e.parameter.token || '';
-      break;
-    case 'cadastro':
-      template = HtmlService.createTemplateFromFile('Cadastro.html');
-      break;
-    case 'lancamentos':
-      template = HtmlService.createTemplateFromFile('Lancamentos.html');
-      break;
-    case 'login':
-      template = HtmlService.createTemplateFromFile('Login.html');
+      template.token = e.parameter.token || ''; // Este é o token de reset, não de sessão
       break;
     default: 
-      // AGORA, se a página não for encontrada, o default também é 'BoasVindas'
       template = HtmlService.createTemplateFromFile('BoasVindas.html');
       break;
   }
   
- 
+  // Passa o token de autenticação para TODAS as páginas protegidas
+  if (authToken) {
+    template.authToken = authToken;
+  }
   
-  // Avalia o template e retorna o HTML processado
   return template.evaluate()
-    .setTitle("Sistemas ARK") // Define um título padrão
+    .setTitle("Sistemas ARK")
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
-
 
 function getScriptUrl() {
   return ScriptApp.getService().getUrl();
 }
 
-function getLoginPageHtml() {
-  return HtmlService.createHtmlOutputFromFile('Login.html').getContent();
+function isTokenValido(token) {
+  if (!token) return false;
+  const user = CacheService.getScriptCache().get(token);
+  return user != null;
 }
-
 
 // ===== LÓGICA DE CACHE DE PERFORMANCE =====
 const cache = CacheService.getScriptCache();
@@ -72,7 +82,7 @@ function putInCache(key, value, expiration = 600) { cache.put(key, JSON.stringif
 
 
 // =================================================================
-// FUNÇÕES DE LOGIN, CADASTRO E RECUPERAÇÃO DE SENHA
+// FUNÇÕES DE LOGIN, CADASTRO E RECUPERAÇÃO DE SENHA (COM TOKEN)
 // =================================================================
 
 function registrarUsuario(email, senhaHash, token) {
@@ -80,32 +90,27 @@ function registrarUsuario(email, senhaHash, token) {
     const abaUsuarios = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(NOME_ABA_USUARIOS);
     const dados = abaUsuarios.getDataRange().getValues();
     
-    // Verifica se o email já existe em alguma conta ativa
     for (let i = 1; i < dados.length; i++) {
       if (dados[i][0].toLowerCase() === email) {
         return { success: false, error: "Este email já pertence a um usuário." };
       }
     }
 
-    // Procura pelo token e verifica se ele está disponível
     for (let i = 1; i < dados.length; i++) {
-      // Coluna E (índice 4) é o TOKEN_AUT, Coluna F (índice 5) é o STATUS
       if (dados[i][4] === token) {
         if (dados[i][5] === 'Ativo') {
           return { success: false, error: "Este token de autorização já foi utilizado." };
         }
         
-        // Token válido e disponível! Atualiza a linha com os dados do novo usuário.
         const linhaParaAtualizar = i + 1;
         abaUsuarios.getRange(linhaParaAtualizar, 1).setValue(email);
         abaUsuarios.getRange(linhaParaAtualizar, 2).setValue(senhaHash);
-        abaUsuarios.getRange(linhaParaAtualizar, 6).setValue('Ativo'); // Marca o token como usado
+        abaUsuarios.getRange(linhaParaAtualizar, 6).setValue('Ativo');
         
         return { success: true };
       }
     }
 
-    // Se o loop terminar e não encontrar o token
     return { success: false, error: "Token de autorização inválido." };
 
   } catch(e) {
@@ -120,12 +125,17 @@ function verificarLogin(email, senhaHash) {
     const dados = abaUsuarios.getDataRange().getValues();
     for (let i = 1; i < dados.length; i++) {
       if (String(dados[i][0]).toLowerCase() === email) {
-        if (dados[i][1] === senhaHash) return { success: true };
-        else return { success: false, error: "Email ou Senha incorreta." };
+        if (dados[i][1] === senhaHash) {
+          const token = Utilities.getUuid();
+          CacheService.getScriptCache().put(token, email, 7200); // 2 horas de sessão
+          return { success: true, token: token };
+        } else {
+          return { success: false, error: "Email ou Senha incorreta." };
+        }
       }
     }
     return { success: false, error: "Usuário não encontrado." };
-  } catch(e) {
+  } catch (e) {
     Logger.log(e);
     return { success: false, error: "Erro ao verificar o login." };
   }
@@ -200,10 +210,11 @@ function redefinirSenha(token, novaSenhaHash) {
 }
 
 // =================================================================
-// FUNÇÕES DE NEGÓCIO (CADASTRO, LANÇAMENTOS, DASHBOARD)
+// FUNÇÕES DE NEGÓCIO (COM VERIFICAÇÃO DE TOKEN)
 // =================================================================
 
-function getFuncionarios() {
+function getFuncionarios(authToken) {
+  if (!isTokenValido(authToken)) return { erro: "Acesso não autorizado." };
   const cacheKey = 'lista_funcionarios';
   const cachedData = getFromCache(cacheKey);
   if (cachedData) return cachedData;
@@ -225,7 +236,8 @@ function getFuncionarios() {
   return sortedFuncionarios;
 }
 
-function getDadosFuncionario(nomeFuncionario) {
+function getDadosFuncionario(authToken, nomeFuncionario) {
+  if (!isTokenValido(authToken)) return { sucesso: false, erro: "Acesso não autorizado." };
   const cacheKey = `dados_func_${nomeFuncionario}`;
   const cachedData = getFromCache(cacheKey);
   if (cachedData) return cachedData;
@@ -241,21 +253,11 @@ function getDadosFuncionario(nomeFuncionario) {
     const gastos = [];
 
     data.forEach((linha, index) => {
-      // Vendas: Colunas A-G
       if (linha[0] && linha[0] instanceof Date) {
-        vendas.push({
-          id: `venda_${index}`, data: linha[0].toISOString(), quantidade: linha[1],
-          produto: linha[2], comprador: linha[3], valor: linha[4],
-          valorTotal: linha[5], status: linha[6]
-        });
+        vendas.push({ id: `venda_${index}`, data: linha[0].toISOString(), quantidade: linha[1], produto: linha[2], comprador: linha[3], valor: linha[4], valorTotal: linha[5], status: linha[6] });
       }
-      // Gastos: Colunas I-O
       if (linha[8] && linha[8] instanceof Date) {
-        gastos.push({
-          id: `gasto_${index}`, data: linha[8].toISOString(), quantidade: linha[9],
-          insumo: linha[10], valor: linha[11], valorTotal: linha[12], status: linha[13],
-          fornecedor: linha[14]
-        });
+        gastos.push({ id: `gasto_${index}`, data: linha[8].toISOString(), quantidade: linha[9], insumo: linha[10], valor: linha[11], valorTotal: linha[12], status: linha[13], fornecedor: linha[14] });
       }
     });
     const resultado = { sucesso: true, vendas, gastos };
@@ -266,7 +268,8 @@ function getDadosFuncionario(nomeFuncionario) {
   }
 }
 
-function salvarLancamentos(nomeFuncionario, dados) {
+function salvarLancamentos(authToken, nomeFuncionario, dados) {
+  if (!isTokenValido(authToken)) return { sucesso: false, erro: "Acesso não autorizado." };
   try {
     const planilha = SpreadsheetApp.getActiveSpreadsheet();
     const aba = planilha.getSheetByName(nomeFuncionario);
@@ -288,24 +291,12 @@ function salvarLancamentos(nomeFuncionario, dados) {
     
     const dadosParaSalvar = [];
     for (let i = 0; i < maxLinhas; i++) {
-      const linha = new Array(15).fill(null); // 15 colunas de A a O
+      const linha = new Array(15).fill(null);
       if (vendas[i]) {
-        linha[0] = new Date(vendas[i].data);
-        linha[1] = vendas[i].quantidade || null;
-        linha[2] = vendas[i].produto || null;
-        linha[3] = vendas[i].comprador || null;
-        linha[4] = vendas[i].valor || null;
-        linha[5] = vendas[i].valorTotal || null;
-        linha[6] = vendas[i].status || null;
+        linha[0] = new Date(vendas[i].data); linha[1] = vendas[i].quantidade || null; linha[2] = vendas[i].produto || null; linha[3] = vendas[i].comprador || null; linha[4] = vendas[i].valor || null; linha[5] = vendas[i].valorTotal || null; linha[6] = vendas[i].status || null;
       }
       if (gastos[i]) {
-        linha[8] = new Date(gastos[i].data);
-        linha[9] = gastos[i].quantidade || null;
-        linha[10] = gastos[i].insumo || null;
-        linha[11] = gastos[i].valor || null;
-        linha[12] = gastos[i].valorTotal || null;
-        linha[13] = gastos[i].status || null;
-        linha[14] = gastos[i].fornecedor || null;
+        linha[8] = new Date(gastos[i].data); linha[9] = gastos[i].quantidade || null; linha[10] = gastos[i].insumo || null; linha[11] = gastos[i].valor || null; linha[12] = gastos[i].valorTotal || null; linha[13] = gastos[i].status || null; linha[14] = gastos[i].fornecedor || null;
       }
       dadosParaSalvar.push(linha);
     }
@@ -325,7 +316,8 @@ function salvarLancamentos(nomeFuncionario, dados) {
 
 const COLUNAS_CADASTRO = { 'produto': 1, 'comprador': 2, 'insumo': 3, 'fornecedor': 4 };
 
-function getDadosCadastro() {
+function getDadosCadastro(authToken) {
+  if (!isTokenValido(authToken)) return { erro: "Acesso não autorizado." };
   const cacheKey = 'dados_cadastro';
   const cachedData = getFromCache(cacheKey);
   if (cachedData) return cachedData;
@@ -348,7 +340,8 @@ function getDadosCadastro() {
   }
 }
 
-function adicionarItem(tipo, valor) {
+function adicionarItem(authToken, tipo, valor) {
+  if (!isTokenValido(authToken)) return { sucesso: false, erro: "Acesso não autorizado." };
   try {
     if (!valor || !tipo) throw new Error("Dados inválidos para adicionar.");
     const coluna = COLUNAS_CADASTRO[tipo];
@@ -369,7 +362,8 @@ function adicionarItem(tipo, valor) {
   }
 }
 
-function editarItem(tipo, valorAntigo, valorNovo) {
+function editarItem(authToken, tipo, valorAntigo, valorNovo) {
+  if (!isTokenValido(authToken)) return { sucesso: false, erro: "Acesso não autorizado." };
   try {
     if (!valorAntigo || !valorNovo || !tipo) throw new Error("Dados inválidos para editar.");
     const coluna = COLUNAS_CADASTRO[tipo];
@@ -390,7 +384,8 @@ function editarItem(tipo, valorAntigo, valorNovo) {
   }
 }
 
-function excluirItem(tipo, valor) {
+function excluirItem(authToken, tipo, valor) {
+  if (!isTokenValido(authToken)) return { sucesso: false, erro: "Acesso não autorizado." };
   try {
     if (!valor || !tipo) throw new Error("Dados inválidos para excluir.");
     const coluna = COLUNAS_CADASTRO[tipo];
@@ -411,7 +406,8 @@ function excluirItem(tipo, valor) {
   }
 }
 
-function adicionarFuncionario(nome) {
+function adicionarFuncionario(authToken, nome) {
+  if (!isTokenValido(authToken)) return { sucesso: false, erro: "Acesso não autorizado." };
   try {
     const planilha = SpreadsheetApp.getActiveSpreadsheet();
     const nomeNormalizado = nome.trim();
@@ -432,7 +428,8 @@ function adicionarFuncionario(nome) {
   }
 }
 
-function deletarFuncionario(nomeFuncionario) {
+function deletarFuncionario(authToken, nomeFuncionario) {
+  if (!isTokenValido(authToken)) return { sucesso: false, erro: "Acesso não autorizado." };
   try {
     const planilha = SpreadsheetApp.getActiveSpreadsheet();
     const abaParaDeletar = planilha.getSheetByName(nomeFuncionario);
@@ -453,8 +450,8 @@ function deletarFuncionario(nomeFuncionario) {
   }
 }
 
-
-function getDadosIniciais() {
+function getDadosIniciais(authToken) {
+  if (!isTokenValido(authToken)) return { erro: "Acesso não autorizado." };
   const cacheKey = 'dados_iniciais_dashboard';
   const cachedData = getFromCache(cacheKey);
   if (cachedData) return cachedData;
@@ -463,7 +460,7 @@ function getDadosIniciais() {
   const todasAsAbas = planilha.getSheets();
   const transacoes = [];
   const funcionariosSet = new Set();
-  const dadosCadastrados = getDadosCadastro();
+  const dadosCadastrados = getDadosCadastro(authToken); // Passar o token adiante
   const produtosSet = new Set(dadosCadastrados.produtos || []);
   const insumosSet = new Set(dadosCadastrados.insumos || []);
   const compradoresSet = new Set(dadosCadastrados.compradores || []);
@@ -499,10 +496,9 @@ function getDadosIniciais() {
   return resultado;
 }
 
-// ===== FUNÇÃO CORRIGIDA =====
-function gerarPaginaDeFechamento(dadosFiltrados, nomeFuncionarioSelecionado, nomeCompradorSelecionado, tipoDeVisualizacaoAtual, nomeCliente) {
+function gerarPaginaDeFechamento(authToken, dadosFiltrados, nomeFuncionarioSelecionado, nomeCompradorSelecionado, tipoDeVisualizacaoAtual, nomeCliente) {
+  if (!isTokenValido(authToken)) return `<h1>Acesso não autorizado.</h1>`;
   
-  // Adiciona a ordenação por data aqui
   dadosFiltrados.sort((a, b) => new Date(a.data) - new Date(b.data));
 
   let totalGanhos = 0;
@@ -551,55 +547,13 @@ function gerarPaginaDeFechamento(dadosFiltrados, nomeFuncionarioSelecionado, nom
     <html>
     <head>
         <title>Relatório de Fechamento</title>
-        <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-            th { background-color: #f2f2f2; }
-            h1 { margin: 0; color: #333; font-size: 1.8em; }
-            h2 { margin: 5px 0 0 0; color: #555; font-weight: normal; font-size: 1.2em; }
-            .report-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; border-bottom: 2px solid #ccc; padding-bottom: 15px; }
-            .report-header .title-section { text-align: left; }
-            .report-header .contact-section { text-align: right; }
-            .report-header .contact-section img { width: 100px; opacity: 0.8; }
-            .report-header .contact-section p { margin: 8px 0 0 0; font-weight: bold; color: #333; }
-            .resumo { margin-top: 20px; padding: 15px; border: 1px solid #ccc; background: #f9f9f9; border-radius: 8px; }
-            .resumo h2 { font-size: 1.4em; text-align: left; }
-            .resumo p { margin: 5px 0; font-size: 1.1em; }
-            .resumo strong { color: #555; }
-            .print-button-container { text-align: center; margin-bottom: 20px; }
-            .print-button { background-color: #6d28d9; color: white; border: none; padding: 12px 25px; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
-            @media print { .no-print { display: none !important; } }
-        </style>
+        <style> body { font-family: Arial, sans-serif; margin: 20px; } table { width: 100%; border-collapse: collapse; margin-top: 20px; } th, td { border: 1px solid #ccc; padding: 8px; text-align: left; } th { background-color: #f2f2f2; } h1 { margin: 0; color: #333; font-size: 1.8em; } h2 { margin: 5px 0 0 0; color: #555; font-weight: normal; font-size: 1.2em; } .report-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; border-bottom: 2px solid #ccc; padding-bottom: 15px; } .report-header .title-section { text-align: left; } .report-header .contact-section { text-align: right; } .report-header .contact-section img { width: 100px; opacity: 0.8; } .report-header .contact-section p { margin: 8px 0 0 0; font-weight: bold; color: #333; } .resumo { margin-top: 20px; padding: 15px; border: 1px solid #ccc; background: #f9f9f9; border-radius: 8px; } .resumo h2 { font-size: 1.4em; text-align: left; } .resumo p { margin: 5px 0; font-size: 1.1em; } .resumo strong { color: #555; } .print-button-container { text-align: center; margin-bottom: 20px; } .print-button { background-color: #6d28d9; color: white; border: none; padding: 12px 25px; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; } @media print { .no-print { display: none !important; } } </style>
     </head>
     <body>
-        <header class="report-header">
-            <div class="title-section">
-                <h1>${tituloRelatorio}</h1>
-                <h2>${nomeCliente || ''}</h2>
-            </div>
-            <div class="contact-section">
-                <img src="https://i.postimg.cc/Qd98gFMF/Sistema-ARK.webp" alt="Logo" ">
-                <p>${telefoneContato}</p>
-            </div>
-        </header>
-
-        <div class="print-button-container no-print">
-            <button class="print-button" onclick="window.print()">Imprimir / Salvar PDF</button>
-        </div>
-
-        <table>
-            <thead>${cabecalhoTabela}</thead>
-            <tbody>${linhasTabela}</tbody>
-        </table>
-
-        <div class="resumo">
-            <h2>Resumo Financeiro</h2>
-            <p><strong>Total de Ganhos:</strong> ${totalGanhos.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
-            <p><strong>Total de Gastos:</strong> ${totalGastos.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
-            <hr>
-            <p><strong>Saldo Final:</strong> ${saldoFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
-        </div>
+        <header class="report-header"> <div class="title-section"> <h1>${tituloRelatorio}</h1> <h2>${nomeCliente || ''}</h2> </div> <div class="contact-section"> <img src="${logoUrl}" alt="Logo" "> <p>${telefoneContato}</p> </div> </header>
+        <div class="print-button-container no-print"> <button class="print-button" onclick="window.print()">Imprimir / Salvar PDF</button> </div>
+        <table> <thead>${cabecalhoTabela}</thead> <tbody>${linhasTabela}</tbody> </table>
+        <div class="resumo"> <h2>Resumo Financeiro</h2> <p><strong>Total de Ganhos:</strong> ${totalGanhos.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p> <p><strong>Total de Gastos:</strong> ${totalGastos.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p> <hr> <p><strong>Saldo Final:</strong> ${saldoFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p> </div>
     </body>
     </html>
   `;

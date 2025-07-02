@@ -67,8 +67,7 @@
         #toast-notification.success { background-color: var(--cor-sucesso); }
         #toast-notification.error { background-color: var(--cor-erro); }
         
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
 
         body { padding-top: 70px; }
@@ -101,18 +100,18 @@
     </nav>
 
     <script>
+        const authToken = '<?= authToken ?>';
         function navigateToNavbar(page) {
             const baseUrl = '<?= getScriptUrl() ?>';
-            window.top.location.href = baseUrl + "?page=" + page;
+            window.top.location.href = baseUrl + "?page=" + page + "&authToken=" + authToken;
         }
         function handleLogoutNavbar() {
             const baseUrl = '<?= getScriptUrl() ?>';
-            localStorage.removeItem('isLoggedIn');
             window.top.location.href = baseUrl + "?page=login";
         }
     </script>
 
-    <div id="loading"><h2>Autenticando...</h2></div>
+    <div id="loading"><h2>Carregando...</h2></div>
 
     <div id="access-denied" style="display:none;">
         <h2>Acesso Negado</h2>
@@ -179,11 +178,6 @@
         };
         
         window.addEventListener('load', () => {
-            if (localStorage.getItem('isLoggedIn') !== 'true') {
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('access-denied').style.display = 'block';
-                return;
-            }
             document.getElementById('loading').style.display = 'none';
             document.getElementById('main-container').style.display = 'block';
             iniciarPagina();
@@ -191,6 +185,7 @@
         
         function iniciarPagina() {
             google.script.run.withSuccessHandler(lista => {
+                if (lista.erro) { showToast('Erro: ' + lista.erro, 'error'); return; }
                 const select = elementos.funcSelect;
                 select.innerHTML = '';
                 if (lista && lista.length > 0) {
@@ -202,7 +197,7 @@
                     elementos.areaLancamentos.innerHTML = '<p style="text-align:center; padding: 20px;">Não há funcionários cadastrados.</p>';
                     elementos.areaLancamentos.style.display = 'block';
                 }
-            }).getFuncionarios();
+            }).getFuncionarios(authToken);
             
             google.script.run.withSuccessHandler(dados => {
                 if (!dados.erro) {
@@ -210,8 +205,10 @@
                     preencherDatalist(elementos.datalists.produtos, dados.produtos);
                     preencherDatalist(elementos.datalists.insumos, dados.insumos);
                     preencherDatalist(elementos.datalists.fornecedores, dados.fornecedores);
+                } else {
+                    showToast('Erro: ' + dados.erro, 'error');
                 }
-            }).getDadosCadastro();
+            }).getDadosCadastro(authToken);
             
             elementos.funcSelect.addEventListener('change', carregarDadosDoFuncionario);
             Object.values(elementos.filtros).forEach(filtro => filtro.addEventListener('change', aplicarFiltrosErenderizar));
@@ -245,7 +242,7 @@
                 } else {
                     showToast('Erro: ' + resultado.erro, 'error');
                 }
-            }).getDadosFuncionario(funcionarioSelecionado);
+            }).getDadosFuncionario(authToken, funcionarioSelecionado);
         }
 
         function popularFiltros() {
@@ -283,7 +280,6 @@
             renderizarTabela('gasto', gastos);
         }
 
-        // ===== FUNÇÃO CORRIGIDA =====
         function renderizarTabela(tipo, dados) {
             const containerEl = document.getElementById(`container-${tipo}s`);
             if (dados.length === 0) { containerEl.innerHTML = `<div class="tabela-vazia">Nenhum lançamento encontrado.</div>`; return; }
@@ -291,7 +287,6 @@
             const cabecalhos = [`<input type="checkbox" onchange="selecionarTodos(this, '${tipo}')">`, ...cabecalhosBase];
             let html = `<table><thead><tr><th>${cabecalhos.join('</th><th>')}</th></tr></thead><tbody>`;
             
-            // Ordena os dados pela data em ordem crescente (do mais antigo para o mais novo)
             dados.sort((a,b) => a.data - b.data).forEach(item => {
                 const linha = tipo === 'venda' ? `<td>${formatarData(item.data)}</td><td>${item.quantidade}</td><td>${item.produto}</td><td>${item.comprador}</td><td>${formatarMoeda(item.valor)}</td><td>${formatarMoeda(item.valorTotal)}</td><td>${item.status}</td>`
                     : `<td>${formatarData(item.data)}</td><td>${item.fornecedor || ''}</td><td>${item.quantidade}</td><td>${item.insumo}</td><td>${formatarMoeda(item.valor)}</td><td>${formatarMoeda(item.valorTotal)}</td><td>${item.status}</td>`;
@@ -433,7 +428,7 @@
             google.script.run.withSuccessHandler(res => {
                 if (res.sucesso) { carregarDadosDoFuncionario(); showToast(msgSucesso, 'success'); } 
                 else { setLoadingState(false); showToast('Erro ao salvar: ' + res.erro, 'error'); }
-            }).salvarLancamentos(funcionarioSelecionado, dados);
+            }).salvarLancamentos(authToken, funcionarioSelecionado, dados);
         }
 
         function abrirConfirmacaoModal(texto, callback) {

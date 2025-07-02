@@ -17,30 +17,44 @@
         .btn:hover:not(:disabled) { background-color: var(--cor-destaque); }
         .links-container { display: flex; justify-content: space-between; margin-top: 20px; font-size: 0.9em; }
         .links-container a { color: var(--cor-primaria); text-decoration: none; font-weight: bold; cursor: pointer; }
+        .message-area { color: #16a34a; font-weight: bold; margin-top: 15px; display: none; }
         .error-message { color: #dc2626; font-weight: bold; margin-top: 15px; display: none; }
     </style>
 </head>
 <body>
     <div class="login-card">
         <h1>Sistemas ARK</h1>
-        <div class="input-group">
-            <label for="email">Email</label>
-            <input type="email" id="email" required>
+        
+        <div id="login-form">
+            <div class="input-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" required>
+            </div>
+            <div class="input-group">
+                <label for="password">Senha</label>
+                <input type="password" id="password" required>
+            </div>
+            <button id="loginBtn" class="btn">Entrar</button>
+            <p id="errorMessage" class="error-message"></p>
+            <div class="links-container">
+                <a id="registerLink">Não tem conta? Cadastre-se</a>
+                <a id="forgotPasswordLink">Esqueci minha senha</a>
+            </div>
         </div>
-        <div class="input-group">
-            <label for="password">Senha</label>
-            <input type="password" id="password" required>
+
+        <div id="success-area" class="message-area">
+            <p>Login realizado com sucesso!</p>
+            <button id="proceedBtn" class="btn">Prosseguir</button>
         </div>
-        <button id="loginBtn" class="btn">Entrar</button>
-        <p id="errorMessage" class="error-message"></p>
-        <div class="links-container">
-            <a id="registerLink">Não tem conta? Cadastre-se</a>
-            <a id="forgotPasswordLink">Esqueci minha senha</a>
-        </div>
+
     </div>
 
     <script>
         let scriptUrl = '<?= getScriptUrl() ?>';
+
+        const loginForm = document.getElementById('login-form');
+        const successArea = document.getElementById('success-area');
+        const proceedBtn = document.getElementById('proceedBtn');
 
         function navigateTo(page) {
             window.top.location.href = scriptUrl + '?page=' + page;
@@ -54,7 +68,6 @@
                 handleLogin();
             }
         });
-
 
         async function hashPassword(password) {
             const encoder = new TextEncoder();
@@ -84,9 +97,17 @@
 
             google.script.run
                 .withSuccessHandler(response => {
-                    if (response.success) {
-                        localStorage.setItem('isLoggedIn', 'true');
-                        window.top.location.replace(scriptUrl); // Redireciona para a página principal
+                    if (response.success && response.token) {
+                        // **INÍCIO DA MUDANÇA**
+                        // Em vez de redirecionar, mostramos o botão "Prosseguir"
+                        loginForm.style.display = 'none';
+                        successArea.style.display = 'block';
+
+                        // Adicionamos o evento de clique para o novo botão
+                        proceedBtn.onclick = function() {
+                            window.top.location.replace(scriptUrl + '?page=BoasVindas&authToken=' + response.token); 
+                        };
+                        // **FIM DA MUDANÇA**
                     } else {
                         errorMessage.textContent = response.error;
                         errorMessage.style.display = 'block';

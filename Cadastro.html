@@ -22,7 +22,6 @@
         #access-denied { display: none; text-align: center; padding-top: 20vh; }
         #access-denied h2 { font-size: 1.2em; color: var(--cor-primaria); font-weight: bold; }
       
-        /* Estilos do Modal Principal */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-box { background: white; padding: 25px; border-radius: 12px; width: 95%; max-width: 600px; max-height: 90vh; display: flex; flex-direction: column; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
@@ -32,7 +31,6 @@
         .modal-footer { margin-top: 20px; display: flex; justify-content: flex-end; }
         .btn-secundario { background-color: #e5e7eb; color: #374151; border: 1px solid #ccc; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
 
-        /* Estilos do Conteúdo do Modal */
         .form-add-item { display: flex; gap: 10px; margin-bottom: 20px; }
         .form-add-item input { flex-grow: 1; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; }
         .btn-add { background-color: var(--cor-primaria); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
@@ -46,17 +44,14 @@
         .form-gerenciar-func input, .form-gerenciar-func select { flex-grow: 1; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; }
         .btn-danger { background-color: var(--cor-erro); }
 
-        /* Estilos do Modal de Confirmação (existente) */
         .modal-overlay-hidden { display: none !important; }
         #custom-modal-overlay { z-index: 1001; }
         
-        /* Estilo do Toast Notification */
         #toast-notification { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 2000; left: 50%; transform: translateX(-50%); bottom: 30px; opacity: 0; transition: visibility 0.5s, opacity 0.5s linear; }
         #toast-notification.show { visibility: visible; opacity: 1; }
         #toast-notification.success { background-color: var(--cor-sucesso); }
         #toast-notification.error { background-color: var(--cor-erro); }
         
-        /* Estilo da Navbar */
         body { padding-top: 70px; }
         .main-navbar { display: flex; justify-content: space-between; align-items: center; gap: 20px; background-color: #6d28d9; padding: 10px 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); position: fixed; top: 0; left: 0; width: 100%; z-index: 999; box-sizing: border-box; }
         .navbar-left, .navbar-right { flex: 1; }
@@ -87,13 +82,13 @@
     </nav>
     
     <script>
+        const authToken = '<?= authToken ?>';
         function navigateToNavbar(page) {
             const baseUrl = '<?= getScriptUrl() ?>';
-            window.top.location.href = baseUrl + "?page=" + page;
+            window.top.location.href = baseUrl + "?page=" + page + "&authToken=" + authToken;
         }
         function handleLogoutNavbar() {
             const baseUrl = '<?= getScriptUrl() ?>';
-            localStorage.removeItem('isLoggedIn');
             window.top.location.href = baseUrl + "?page=login";
         }
     </script>
@@ -143,7 +138,6 @@
     <div id="toast-notification"></div>
 
     <script>
-        // Agora este script contém apenas a lógica da página de Cadastro
         let dadosGlobais = {}; 
 
         const elementos = {
@@ -168,11 +162,6 @@
         let customModalCallback = null;
 
         window.addEventListener('load', () => {
-            if (localStorage.getItem('isLoggedIn') !== 'true') {
-                elementos.loading.style.display = 'none';
-                elementos.accessDenied.style.display = 'block';
-                return;
-            }
             elementos.loading.style.display = 'none';
             elementos.mainContainer.style.display = 'block';
             carregarDadosIniciais();
@@ -183,16 +172,18 @@
             elementos.mainContainer.style.display = 'none';
             google.script.run
                 .withSuccessHandler(dados => {
+                    if (dados.erro) { showToast('Erro: ' + dados.erro, 'error'); return; }
                     dadosGlobais.cadastro = dados;
                     google.script.run
                         .withSuccessHandler(funcionarios => {
+                            if (funcionarios.erro) { showToast('Erro: ' + funcionarios.erro, 'error'); return; }
                             dadosGlobais.funcionarios = funcionarios;
                             elementos.loading.style.display = 'none';
                             elementos.mainContainer.style.display = 'block';
                         })
-                        .getFuncionarios();
+                        .getFuncionarios(authToken);
                 })
-                .getDadosCadastro();
+                .getDadosCadastro(authToken);
         }
 
         function abrirModalGerenciamento(tipo) {
@@ -226,34 +217,15 @@
         }
         
         function renderizarModalItens(container, tipo) {
-            const pluralMap = {
-                produto: 'produtos',
-                comprador: 'compradores',
-                insumo: 'insumos',
-                fornecedor: 'fornecedores'
-            };
+            const pluralMap = { produto: 'produtos', comprador: 'compradores', insumo: 'insumos', fornecedor: 'fornecedores' };
             const tipoPlural = pluralMap[tipo];
             const placeholder = `Nome do novo ${tipo}`;
             const listaItens = dadosGlobais.cadastro[tipoPlural] || [];
             
-            let html = `
-                <div class="form-add-item">
-                    <input type="text" id="input-add-${tipo}" placeholder="${placeholder}">
-                    <button class="btn-add" onclick="adicionarItemModal()">Adicionar</button>
-                </div>
-                <ul class="lista-gerenciamento" id="lista-modal-${tipo}">
-            `;
+            let html = `<div class="form-add-item"><input type="text" id="input-add-${tipo}" placeholder="${placeholder}"><button class="btn-add" onclick="adicionarItemModal()">Adicionar</button></div><ul class="lista-gerenciamento" id="lista-modal-${tipo}">`;
             if (listaItens.length > 0) {
                 listaItens.sort((a,b) => a.localeCompare(b)).forEach(item => {
-                    html += `
-                        <li>
-                            <span>${item}</span>
-                            <div class="item-acoes">
-                                <button title="Editar" onclick="editarItem('${tipo}', '${item}')">✏️</button>
-                                <button title="Excluir" onclick="excluirItem('${tipo}', '${item}')">🗑️</button>
-                            </div>
-                        </li>
-                    `;
+                    html += `<li><span>${item}</span><div class="item-acoes"><button title="Editar" onclick="editarItem('${tipo}', '${item}')">✏️</button><button title="Excluir" onclick="excluirItem('${tipo}', '${item}')">🗑️</button></div></li>`;
                 });
             } else {
                 html += '<li>Nenhum item cadastrado.</li>';
@@ -265,24 +237,7 @@
         function renderizarModalFuncionarios(container) {
             const listaFuncionarios = dadosGlobais.funcionarios || [];
             let options = listaFuncionarios.map(f => `<option value="${f}">${f}</option>`).join('');
-            container.innerHTML = `
-                <div class="form-gerenciar-func">
-                    <h4>Criar Novo Funcionário</h4>
-                    <div class="form-group">
-                        <input type="text" id="input-novo-funcionario-modal" placeholder="Nome do novo funcionário">
-                        <button class="btn-add" onclick="adicionarNovoFuncionarioModal()">Criar</button>
-                    </div>
-                    <hr>
-                    <h4>Deletar Funcionário Existente</h4>
-                    <div class="form-group">
-                        <select id="select-funcionario-modal">
-                            <option value="">Selecione um funcionário</option>
-                            ${options}
-                        </select>
-                        <button class="btn-danger" onclick="deletarFuncionarioModal()">Deletar</button>
-                    </div>
-                </div>
-            `;
+            container.innerHTML = `<div class="form-gerenciar-func"><h4>Criar Novo Funcionário</h4><div class="form-group"><input type="text" id="input-novo-funcionario-modal" placeholder="Nome do novo funcionário"><button class="btn-add" onclick="adicionarNovoFuncionarioModal()">Criar</button></div><hr><h4>Deletar Funcionário Existente</h4><div class="form-group"><select id="select-funcionario-modal"><option value="">Selecione um funcionário</option>${options}</select><button class="btn-danger" onclick="deletarFuncionarioModal()">Deletar</button></div></div>`;
         }
         
         function showToast(message, type = 'success', duration = 3000) {
@@ -308,13 +263,14 @@
                 if (resultado.sucesso) {
                     showToast(`${tipo.charAt(0).toUpperCase() + tipo.slice(1)} adicionado(a) com sucesso!`, 'success');
                     google.script.run.withSuccessHandler(dados => {
+                        if (dados.erro) { showToast('Erro: ' + dados.erro, 'error'); return; }
                         dadosGlobais.cadastro = dados;
                         renderizarConteudoModal(tipo);
-                    }).getDadosCadastro();
+                    }).getDadosCadastro(authToken);
                 } else {
                     showToast(resultado.erro, 'error');
                 }
-            }).adicionarItem(tipo, valor);
+            }).adicionarItem(authToken, tipo, valor);
         }
 
         function editarItem(tipo, valorAntigo) {
@@ -329,13 +285,14 @@
                             if (resultado.sucesso) {
                                 showToast(`${tipo.charAt(0).toUpperCase() + tipo.slice(1)} editado(a) com sucesso!`, 'success');
                                 google.script.run.withSuccessHandler(dados => {
+                                    if (dados.erro) { showToast('Erro: ' + dados.erro, 'error'); return; }
                                     dadosGlobais.cadastro = dados;
                                     renderizarConteudoModal(tipo);
-                                }).getDadosCadastro();
+                                }).getDadosCadastro(authToken);
                             } else {
                                 showToast(resultado.erro, 'error');
                             }
-                        }).editarItem(tipo, valorAntigo, valorNovo.trim());
+                        }).editarItem(authToken, tipo, valorAntigo, valorNovo.trim());
                     }
                 }
             });
@@ -352,13 +309,14 @@
                             if (resultado.sucesso) {
                                 showToast(`${tipo.charAt(0).toUpperCase() + tipo.slice(1)} excluído(a) com sucesso!`, 'success');
                                 google.script.run.withSuccessHandler(dados => {
+                                    if (dados.erro) { showToast('Erro: ' + dados.erro, 'error'); return; }
                                     dadosGlobais.cadastro = dados;
                                     renderizarConteudoModal(tipo);
-                                }).getDadosCadastro();
+                                }).getDadosCadastro(authToken);
                             } else {
                                 showToast(resultado.erro, 'error');
                             }
-                        }).excluirItem(tipo, valor);
+                        }).excluirItem(authToken, tipo, valor);
                     }
                 }
             });
@@ -376,13 +334,14 @@
                 if(resultado.sucesso) {
                     showToast(resultado.mensagem, 'success');
                     google.script.run.withSuccessHandler(funcionarios => {
+                        if (funcionarios.erro) { showToast('Erro: ' + funcionarios.erro, 'error'); return; }
                         dadosGlobais.funcionarios = funcionarios;
                         renderizarConteudoModal('funcionario');
-                    }).getFuncionarios();
+                    }).getFuncionarios(authToken);
                 } else {
                     showToast(resultado.erro, 'error');
                 }
-            }).adicionarFuncionario(nome);
+            }).adicionarFuncionario(authToken, nome);
         }
 
         function deletarFuncionarioModal() {
@@ -403,13 +362,14 @@
                              if (resultado.sucesso) {
                                 showToast(resultado.mensagem, 'success');
                                 google.script.run.withSuccessHandler(funcionarios => {
+                                    if (funcionarios.erro) { showToast('Erro: ' + funcionarios.erro, 'error'); return; }
                                     dadosGlobais.funcionarios = funcionarios;
                                     renderizarConteudoModal('funcionario');
-                                }).getFuncionarios();
+                                }).getFuncionarios(authToken);
                             } else {
                                 showToast(resultado.erro, 'error');
                             }
-                        }).deletarFuncionario(nome);
+                        }).deletarFuncionario(authToken, nome);
                     } else if (confirmacao !== null) {
                         showToast('O nome digitado não confere. Ação cancelada.', 'error');
                     }
