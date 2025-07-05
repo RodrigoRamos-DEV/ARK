@@ -7,43 +7,98 @@
     <style>
       
         :root {
-            --cor-primaria: #6d28d9; --cor-destaque: #8b5cf6; --cor-fundo: #f5f3f7; --cor-card: #ffffff;
-            --cor-texto: #333; --sombra-card: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --cor-primaria: #6d28d9; 
+            --cor-destaque: #8b5cf6; 
+            --cor-fundo: #f5f3f7;
+            --cor-card: #ffffff;
+            --cor-texto: #333;
+            --cor-texto-label: #555;
+            --cor-borda: #ccc;
+            --cor-input-fundo: #fff;
+            --sombra-card: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
             --cor-erro: #dc2626;
             --cor-sucesso: #16a34a;
         }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-image: linear-gradient(to top, #f2f2f7, #e9e4f0); color: var(--cor-texto); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        body.dark-mode {
+            --cor-fundo: #111827;
+            --cor-card: #1f2937;
+            --cor-texto: #f9fafb;
+            --cor-texto-label: #d1d5db;
+            --cor-borda: #4b5563;
+            --cor-input-fundo: #374151;
+            --sombra-card: 0 4px 6px -1px rgba(0,0,0,0.4), 0 2px 4px -1px rgba(0,0,0,0.2);
+        }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+            background-color: var(--cor-fundo); 
+            color: var(--cor-texto); 
+            margin: 0; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center;
+            transition: background-color 0.3s, color 0.3s;
+        }
         #loading { text-align: center; padding-top: 20vh; font-size: 1.2em; color: var(--cor-primaria); font-weight: bold; }
         .container { width: 100%; max-width: 900px; display: none; }
 
         .botoes-gerenciamento { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 20px; }
-        .btn-gerenciar { background-color: var(--cor-card); color: var(--cor-primaria); border: 1px solid var(--cor-primaria); padding: 25px; border-radius: 12px; cursor: pointer; transition: all 0.2s; font-size: 1.2em; font-weight: bold; box-shadow: var(--sombra-card); }
-        .btn-gerenciar:hover { background-color: var(--cor-primaria); color: white; transform: translateY(-3px); box-shadow: 0 8px 15px -3px rgba(0,0,0,0.15); }
+        .btn-gerenciar { 
+            background-color: var(--cor-card); 
+            color: var(--cor-primaria); 
+            border: 1px solid var(--cor-primaria); 
+            padding: 25px; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            font-size: 1.2em; 
+            font-weight: bold; 
+            box-shadow: var(--sombra-card);
+        }
+        .btn-gerenciar:hover { background-color: var(--cor-primaria); color: white; transform: translateY(-3px); box-shadow: 0 8px 15px -3px rgba(109, 40, 217, 0.3); }
 
         #access-denied { display: none; text-align: center; padding-top: 20vh; }
         #access-denied h2 { font-size: 1.2em; color: var(--cor-primaria); font-weight: bold; }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
-        .modal-box { background: white; padding: 25px; border-radius: 12px; width: 95%; max-width: 600px; max-height: 90vh; display: flex; flex-direction: column; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
+        .modal-box { background: var(--cor-card); padding: 25px; border-radius: 12px; width: 95%; max-width: 600px; max-height: 90vh; display: flex; flex-direction: column; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--cor-borda); padding-bottom: 15px; margin-bottom: 20px; }
         .modal-header h2 { margin: 0; color: var(--cor-primaria); }
-        .modal-header .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #888; }
+        .modal-header .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--cor-texto-label); }
         .modal-body { overflow-y: auto; padding-right: 15px; }
         .modal-footer { margin-top: 20px; display: flex; justify-content: flex-end; }
-        .btn-secundario { background-color: #e5e7eb; color: #374151; border: 1px solid #ccc; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        
+        .btn-secundario { background-color: #e5e7eb; color: #374151; border: 1px solid var(--cor-borda); padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        body.dark-mode .btn-secundario {
+            background-color: #4b5563;
+            color: #f9fafb;
+            border-color: #374151;
+        }
 
         .form-add-item { display: flex; gap: 10px; margin-bottom: 20px; }
-        .form-add-item input { flex-grow: 1; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; }
+        .form-add-item input { 
+            flex-grow: 1; padding: 10px; border-radius: 6px; 
+            border: 1px solid var(--cor-borda); 
+            font-size: 1em;
+            background-color: var(--cor-input-fundo);
+            color: var(--cor-texto);
+        }
         .btn-add { background-color: var(--cor-primaria); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .lista-gerenciamento { list-style: none; padding: 0; }
-        .lista-gerenciamento li { display: flex; justify-content: space-between; align-items: center; padding: 12px 5px; border-bottom: 1px solid #eee; }
+        .lista-gerenciamento li { display: flex; justify-content: space-between; align-items: center; padding: 12px 5px; border-bottom: 1px solid var(--cor-borda); }
         .item-acoes button { background: none; border: none; cursor: pointer; padding: 5px; opacity: 0.6; font-size: 16px; margin-left: 8px; }
         .item-acoes button:hover { opacity: 1; }
         .loader { text-align: center; padding: 20px; color: #999; }
         .form-gerenciar-func { display: flex; flex-direction: column; gap: 15px; }
         .form-gerenciar-func .form-group { display: flex; gap: 10px; }
-        .form-gerenciar-func input, .form-gerenciar-func select { flex-grow: 1; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; }
-        .btn-danger { background-color: var(--cor-erro); }
+        .form-gerenciar-func input, .form-gerenciar-func select { 
+            flex-grow: 1; padding: 10px; border-radius: 6px; 
+            border: 1px solid var(--cor-borda); 
+            font-size: 1em;
+            background-color: var(--cor-input-fundo);
+            color: var(--cor-texto);
+        }
+        .btn-danger { background-color: var(--cor-erro); color: white; }
 
         .modal-overlay-hidden { display: none !important; }
         #custom-modal-overlay { z-index: 1001; }
@@ -57,58 +112,27 @@
         .main-navbar { display: flex; justify-content: space-between; align-items: center; gap: 20px; background-color: #6d28d9; padding: 10px 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); position: fixed; top: 0; left: 0; width: 100%; z-index: 999; box-sizing: border-box; }
         .navbar-left, .navbar-right { flex: 1; }
         .navbar-center { flex: 2; display: flex; justify-content: center; gap: 15px; }
-        .navbar-right { display: flex; justify-content: flex-end; }
+        .navbar-right { display: flex; justify-content: flex-end; align-items: center; }
         .navbar-logo { height: 45px; width: auto; }
         .main-navbar .nav-button { background-color: transparent; color: white; border: 2px solid transparent; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 1em; cursor: pointer; transition: all 0.2s; text-decoration: none; white-space: nowrap; }
         .main-navbar .nav-button:hover { background-color: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.5); }
         .main-navbar .nav-button.logout { background-color: rgba(220, 38, 38, 0.7); }
         .main-navbar .nav-button.logout:hover { background-color: #dc2626; border-color: transparent; }
-        /* ESTILOS PARA O SISTEMA DE AVISOS DE VENCIMENTO */
-#aviso-a-vencer {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background-color: #f59e0b; /* Laranja */
-  color: white;
-  padding: 16px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  z-index: 9998; /* Abaixo do overlay de vencido */
-  display: none; /* Começa escondido */
-  max-width: 320px;
-}
-#vencido-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(20, 20, 20, 0.9);
-  z-index: 9999;
-  display: none; /* Começa escondido */
-  justify-content: center;
-  align-items: center;
-  color: white;
-  text-align: center;
-  flex-direction: column;
-}
-.vencido-box {
-  background-color: #dc2626; /* Vermelho */
-  padding: 30px 40px;
-  border-radius: 12px;
-  max-width: 500px;
-  box-shadow: 0 0 30px rgba(0,0,0,0.5);
-}
-.vencido-box h1 {
-  font-size: 2em;
-  margin-top: 0;
-  margin-bottom: 15px;
-  color: white;
-}
-.vencido-box p {
-  font-size: 1.1em;
-  line-height: 1.6;
-}
+        #theme-toggle { font-size: 1.5em; padding: 0 10px; line-height: 1; }
+
+        #aviso-a-vencer {
+          position: fixed; bottom: 20px; right: 20px; background-color: #f59e0b; color: white;
+          padding: 16px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 9998;
+          display: none; max-width: 320px;
+        }
+        #vencido-overlay {
+          position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+          background-color: rgba(20, 20, 20, 0.9); z-index: 9999; display: none;
+          justify-content: center; align-items: center; color: white; text-align: center; flex-direction: column;
+        }
+        .vencido-box { background-color: #dc2626; padding: 30px 40px; border-radius: 12px; max-width: 500px; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
+        .vencido-box h1 { font-size: 2em; margin-top: 0; margin-bottom: 15px; color: white; }
+        .vencido-box p { font-size: 1.1em; line-height: 1.6; }
     </style>
 </head>
 <body>
@@ -124,6 +148,7 @@
             <a href="javascript:void(0);" onclick="navigateToNavbar('cadastro')" class="nav-button">Cadastro</a>
         </div>
         <div class="navbar-right">
+            <button id="theme-toggle" class="nav-button">🌙</button>
             <a href="javascript:void(0);" onclick="handleLogoutNavbar()" class="nav-button logout">Sair</a>
         </div>
     </nav>
@@ -194,6 +219,7 @@
     <div id="toast-notification"></div>
 
     <script>
+        // Script principal da página Cadastro.html
         let dadosGlobais = {};
 
         const elementos = {
@@ -474,20 +500,46 @@
     <div id="vencido-overlay">...</div>
       <div id="aviso-a-vencer">...</div>
 <script>
-(function() {
-    // Esta variável especial é preenchida pelo Code.gs
-    const statusVencimento = '<?= statusVencimento ?>';
+    // Script de Gerenciamento do Tema (Dark Mode)
+    (function() {
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
 
-    const avisoAVencer = document.getElementById('aviso-a-vencer');
-    const overlayVencido = document.getElementById('vencido-overlay');
+        const applyTheme = (theme) => {
+            if (theme === 'dark') {
+                body.classList.add('dark-mode');
+                if(themeToggle) themeToggle.textContent = '☀️';
+            } else {
+                body.classList.remove('dark-mode');
+                if(themeToggle) themeToggle.textContent = '🌙';
+            }
+        };
 
-    if (statusVencimento === 'VENCIDO') {
-        if (overlayVencido) overlayVencido.style.display = 'flex';
-    } else if (statusVencimento === 'A VENCER') {
-        if (avisoAVencer) avisoAVencer.style.display = 'block';
-    }
-})();
+        if(themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                const isDarkMode = body.classList.contains('dark-mode');
+                const newTheme = isDarkMode ? 'light' : 'dark';
+                localStorage.setItem('theme', newTheme);
+                applyTheme(newTheme);
+            });
+        }
+
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        applyTheme(savedTheme);
+    })();
+
+    // Script de Verificação de Vencimento
+    (function() {
+        const statusVencimento = '<?= statusVencimento ?>';
+        const avisoAVencer = document.getElementById('aviso-a-vencer');
+        const overlayVencido = document.getElementById('vencido-overlay');
+
+        if (statusVencimento === 'VENCIDO') {
+            if (overlayVencido) overlayVencido.style.display = 'flex';
+        } else if (statusVencimento === 'A VENCER') {
+            if (avisoAVencer) avisoAVencer.style.display = 'block';
+        }
+    })();
 </script>
-
-    </body>
+</body>
 </html>

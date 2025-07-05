@@ -8,13 +8,21 @@
         :root {
             --cor-primaria: #6d28d9;
             --cor-destaque: #8b5cf6;
+            --cor-fundo: #f5f3f7;
+            --cor-texto: #333;
+        }
+        body.dark-mode {
+            --cor-fundo: #111827;
+            --cor-texto: #f9fafb;
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-image: linear-gradient(to top, #f2f2f7, #e9e4f0);
+            background-color: var(--cor-fundo);
+            color: var(--cor-texto);
             margin: 0;
             padding: 0;
             overflow: hidden;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         .welcome-container {
@@ -44,67 +52,67 @@
             50% { transform: scale(1.4); }
             100% { transform: scale(1); }
         }
-    </style>
-</head>
-<body>
-    <style>
+
         body { padding-top: 70px; }
         .main-navbar { display: flex; justify-content: space-between; align-items: center; gap: 20px; background-color: #6d28d9; padding: 10px 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); position: fixed; top: 0; left: 0; width: 100%; z-index: 1001; box-sizing: border-box; }
         .navbar-left, .navbar-right { flex: 1; }
         .navbar-center { flex: 2; display: flex; justify-content: center; gap: 15px; }
-        .navbar-right { display: flex; justify-content: flex-end; }
+        .navbar-right { display: flex; justify-content: flex-end; align-items: center; }
         .navbar-logo { height: 45px; width: auto; }
         .main-navbar .nav-button { background-color: transparent; color: white; border: 2px solid transparent; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 1em; cursor: pointer; transition: all 0.2s; text-decoration: none; white-space: nowrap; }
         .main-navbar .nav-button:hover { background-color: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.5); }
         .main-navbar .nav-button.logout { background-color: rgba(220, 38, 38, 0.7); }
         .main-navbar .nav-button.logout:hover { background-color: #dc2626; border-color: transparent; }
-        /* ESTILOS PARA O SISTEMA DE AVISOS DE VENCIMENTO */
-#aviso-a-vencer {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background-color: #f59e0b; /* Laranja */
-  color: white;
-  padding: 16px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  z-index: 9998; /* Abaixo do overlay de vencido */
-  display: none; /* Começa escondido */
-  max-width: 320px;
-}
-#vencido-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(20, 20, 20, 0.9);
-  z-index: 9999;
-  display: none; /* Começa escondido */
-  justify-content: center;
-  align-items: center;
-  color: white;
-  text-align: center;
-  flex-direction: column;
-}
-.vencido-box {
-  background-color: #dc2626; /* Vermelho */
-  padding: 30px 40px;
-  border-radius: 12px;
-  max-width: 500px;
-  box-shadow: 0 0 30px rgba(0,0,0,0.5);
-}
-.vencido-box h1 {
-  font-size: 2em;
-  margin-top: 0;
-  margin-bottom: 15px;
-  color: white;
-}
-.vencido-box p {
-  font-size: 1.1em;
-  line-height: 1.6;
-}
+        #theme-toggle { font-size: 1.5em; padding: 0 10px; line-height: 1; }
+        
+        #aviso-a-vencer {
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          background-color: #f59e0b;
+          color: white;
+          padding: 16px;
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+          z-index: 9998;
+          display: none;
+          max-width: 320px;
+        }
+        #vencido-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100vw;
+          height: 100vh;
+          background-color: rgba(20, 20, 20, 0.9);
+          z-index: 9999;
+          display: none;
+          justify-content: center;
+          align-items: center;
+          color: white;
+          text-align: center;
+          flex-direction: column;
+        }
+        .vencido-box {
+          background-color: #dc2626;
+          padding: 30px 40px;
+          border-radius: 12px;
+          max-width: 500px;
+          box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+        .vencido-box h1 {
+          font-size: 2em;
+          margin-top: 0;
+          margin-bottom: 15px;
+          color: white;
+        }
+        .vencido-box p {
+          font-size: 1.1em;
+          line-height: 1.6;
+        }
     </style>
+</head>
+<body>
 
     <nav class="main-navbar">
         <div class="navbar-left">
@@ -117,6 +125,7 @@
             <a href="javascript:void(0);" onclick="navigateToNavbar('cadastro')" class="nav-button">Cadastro</a>
         </div>
         <div class="navbar-right">
+            <button id="theme-toggle" class="nav-button">🌙</button>
             <a href="javascript:void(0);" onclick="handleLogoutNavbar()" class="nav-button logout">Sair</a>
         </div>
     </nav>
@@ -131,18 +140,15 @@
   <p>Sua licença está próxima do vencimento. Contate o suporte para renovação e evitar o bloqueio do sistema.</p>
 </div>
     <script>
-        // A página agora recebe o token do servidor e o armazena nesta variável.
         const authToken = '<?= authToken ?>';
 
         function navigateToNavbar(page) {
             const url = '<?= getScriptUrl() ?>';
-            // Adicionamos o token em todas as URLs para manter o usuário logado
             window.top.location.href = url + "?page=" + page + "&authToken=" + authToken;
         }
 
         function handleLogoutNavbar() {
             const url = '<?= getScriptUrl() ?>';
-            // Não precisamos mais mexer no localStorage, apenas ir para a página de login.
             window.top.location.href = url + "?page=login";
         }
     </script>
@@ -158,27 +164,47 @@
         <p id="aviso-licenca-texto" style="margin: 5px 0 0 0;"></p>
     </div>
 
-    <div id="aviso-licenca" style="display: none; position: fixed; bottom: 20px; left: 20px; color: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 9999; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-    <strong>Aviso Importante:</strong>
-    <p id="aviso-licenca-texto" style="margin: 5px 0 0 0;"></p>
-</div>
-
-<div id="vencido-overlay">...</div>
-      <div id="aviso-a-vencer">...</div>
 <script>
-(function() {
-    // Esta variável especial é preenchida pelo Code.gs
-    const statusVencimento = '<?= statusVencimento ?>';
+    // Script de Gerenciamento do Tema (Dark Mode)
+    (function() {
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
 
-    const avisoAVencer = document.getElementById('aviso-a-vencer');
-    const overlayVencido = document.getElementById('vencido-overlay');
+        const applyTheme = (theme) => {
+            if (theme === 'dark') {
+                body.classList.add('dark-mode');
+                if(themeToggle) themeToggle.textContent = '☀️';
+            } else {
+                body.classList.remove('dark-mode');
+                if(themeToggle) themeToggle.textContent = '🌙';
+            }
+        };
 
-    if (statusVencimento === 'VENCIDO') {
-        if (overlayVencido) overlayVencido.style.display = 'flex';
-    } else if (statusVencimento === 'A VENCER') {
-        if (avisoAVencer) avisoAVencer.style.display = 'block';
-    }
-})();
+        if(themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                const isDarkMode = body.classList.contains('dark-mode');
+                const newTheme = isDarkMode ? 'light' : 'dark';
+                localStorage.setItem('theme', newTheme);
+                applyTheme(newTheme);
+            });
+        }
+
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        applyTheme(savedTheme);
+    })();
+
+    // Script de Verificação de Vencimento
+    (function() {
+        const statusVencimento = '<?= statusVencimento ?>';
+        const avisoAVencer = document.getElementById('aviso-a-vencer');
+        const overlayVencido = document.getElementById('vencido-overlay');
+
+        if (statusVencimento === 'VENCIDO') {
+            if (overlayVencido) overlayVencido.style.display = 'flex';
+        } else if (statusVencimento === 'A VENCER') {
+            if (avisoAVencer) avisoAVencer.style.display = 'block';
+        }
+    })();
 </script>
     </body>
 </html>

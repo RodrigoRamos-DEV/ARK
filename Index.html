@@ -6,32 +6,87 @@
     <title>Controle Financeiro</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <style>
+      /* =============== INÍCIO: ESTILOS PARA DARK MODE =============== */
       :root {
-        --cor-primaria: #6d28d9; --cor-destaque: #8b5cf6; --cor-fundo: #f5f3f7;
-        --cor-card: #ffffff; --cor-texto: #333; --sombra-card: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+        --cor-primaria: #6d28d9; 
+        --cor-destaque: #8b5cf6; 
+        --cor-fundo: #f5f3f7;
+        --cor-card: #ffffff; 
+        --cor-texto: #333; 
+        --cor-texto-label: #555;
+        --cor-borda: #ccc;
+        --cor-input-fundo: #fff;
+        --sombra-card: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+        --cor-grafico-texto: #666;
+        --cor-grafico-borda: '#efefef';
       }
-      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-image: linear-gradient(to top, #f2f2f7, #e9e4f0); color: var(--cor-texto); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+
+      body.dark-mode {
+        --cor-fundo: #111827; /* Azul-escuro */
+        --cor-card: #1f2937; /* Azul-acinzentado */
+        --cor-texto: #f9fafb; /* Branco */
+        --cor-texto-label: #d1d5db; /* Cinza-claro */
+        --cor-borda: #4b5563; /* Cinza-médio */
+        --cor-input-fundo: #374151; /* Cinza-escuro */
+        --sombra-card: 0 4px 6px -1px rgba(0,0,0,0.4), 0 2px 4px -1px rgba(0,0,0,0.2);
+        --cor-grafico-texto: '#d1d5db';
+        --cor-grafico-borda: 'rgba(255, 255, 255, 0.1)';
+      }
+      /* =============== FIM: ESTILOS PARA DARK MODE =============== */
+
+      body { 
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+        background-color: var(--cor-fundo); /* Modificado */
+        color: var(--cor-texto); /* Modificado */
+        margin: 0; 
+        padding: 20px; 
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        transition: background-color 0.3s, color 0.3s;
+      }
       #loading { text-align: center; padding-top: 20vh; font-size: 1.2em; color: var(--cor-primaria); font-weight: bold; }
       .container { width: 100%; max-width: 1200px; display: none; }
       #access-denied { display: none; text-align: center; padding-top: 20vh; }
       #access-denied h2 { font-size: 1.2em; color: var(--cor-primaria); font-weight: bold; }
-      #access-denied p { color: #333; }
+      #access-denied p { color: var(--cor-texto); } /* Modificado */
       .btn { background-color: var(--cor-primaria); color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-size: 1.1em; font-weight: bold; transition: background-color 0.2s; }
       
       header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 20px; padding: 0 10px; }
       h1 { color: var(--cor-primaria); margin: 0; }
-      .card { background-color: var(--cor-card); border-radius: 12px; box-shadow: var(--sombra-card); padding: 25px; margin-bottom: 25px; }
+      .card { 
+        background-color: var(--cor-card); /* Modificado */
+        border-radius: 12px; 
+        box-shadow: var(--sombra-card); /* Modificado */
+        padding: 25px; 
+        margin-bottom: 25px;
+        transition: background-color 0.3s;
+      }
       .filtros-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; align-items: end; }
       .filtro-item { display: flex; flex-direction: column; }
-      label { font-size: 0.9em; margin-bottom: 8px; font-weight: 500; color: #555; }
-      select, input { padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; background-color: #fff; width: 100%; box-sizing: border-box;}
+      label { 
+        font-size: 0.9em; 
+        margin-bottom: 8px; 
+        font-weight: 500; 
+        color: var(--cor-texto-label); /* Modificado */
+      }
+      select, input { 
+        padding: 10px; 
+        border-radius: 6px; 
+        border: 1px solid var(--cor-borda); /* Modificado */
+        font-size: 1em; 
+        background-color: var(--cor-input-fundo); /* Modificado */
+        color: var(--cor-texto); /* Modificado */
+        width: 100%; 
+        box-sizing: border-box;
+      }
       select:focus, input:focus { outline: none; border-color: var(--cor-primaria); box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2); }
       .botoes-acao { display: flex; gap: 10px; margin-bottom: 20px; }
-      .botoes-acao button, #gerarPdfBtn { flex-grow: 1; background-color: #e5e7eb; color: #374151; font-weight: bold; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; cursor: pointer; transition: background-color 0.2s; }
+      .botoes-acao button, #gerarPdfBtn { flex-grow: 1; background-color: #e5e7eb; color: #374151; font-weight: bold; padding: 10px; border-radius: 6px; border: 1px solid var(--cor-borda); font-size: 1em; cursor: pointer; transition: background-color 0.2s; } /* Modificado */
       .botoes-acao button.ativo, #gerarPdfBtn { background-color: var(--cor-primaria); color: white; border-color: var(--cor-primaria); }
       .botoes-acao button:hover, #gerarPdfBtn:hover { background-color: var(--cor-destaque); border-color: var(--cor-destaque); }
       .resumo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; text-align: center; }
-      .resumo-item h3 { margin-top: 0; color: #555; font-weight: 500; }
+      .resumo-item h3 { margin-top: 0; color: var(--cor-texto-label); font-weight: 500; } /* Modificado */
       .resumo-item p { font-size: 1.8em; font-weight: bold; margin: 0; }
       .ganhos { color: #16a34a; } .gastos { color: #dc2626; } .saldo { color: var(--cor-primaria); }
       .graficos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -47,12 +102,14 @@
       .main-navbar { display: flex; justify-content: space-between; align-items: center; gap: 20px; background-color: #6d28d9; padding: 10px 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); position: fixed; top: 0; left: 0; width: 100%; z-index: 1001; box-sizing: border-box; }
       .navbar-left, .navbar-right { flex: 1; }
       .navbar-center { flex: 2; display: flex; justify-content: center; gap: 15px; }
-      .navbar-right { display: flex; justify-content: flex-end; }
+      .navbar-right { display: flex; justify-content: flex-end; align-items: center; } /* Modificado */
       .navbar-logo { height: 45px; width: auto; }
       .main-navbar .nav-button { background-color: transparent; color: white; border: 2px solid transparent; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 1em; cursor: pointer; transition: all 0.2s; text-decoration: none; white-space: nowrap; }
       .main-navbar .nav-button:hover { background-color: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.5); }
       .main-navbar .nav-button.logout { background-color: rgba(220, 38, 38, 0.7); }
       .main-navbar .nav-button.logout:hover { background-color: #dc2626; border-color: transparent; }
+      /* Novo estilo para o botão de tema */
+      #theme-toggle { font-size: 1.5em; padding: 0 10px; line-height: 1; }
       
       /* ESTILOS PARA O SISTEMA DE AVISOS DE VENCIMENTO */
       #aviso-a-vencer {
@@ -115,6 +172,7 @@
             <a href="javascript:void(0);" onclick="navigateToNavbar('cadastro')" class="nav-button">Cadastro</a>
         </div>
         <div class="navbar-right">
+            <button id="theme-toggle" class="nav-button">🌙</button>
             <a href="javascript:void(0);" onclick="handleLogoutNavbar()" class="nav-button logout">Sair</a>
         </div>
     </nav>
@@ -229,7 +287,7 @@
                 return;
             }
             if (dadosIniciais.transacoes.length === 0) {
-                document.getElementById('dashboard-content').innerHTML = '<p style="text-align:center; padding: 40px; color: #555;">Nenhum dado encontrado na planilha. Comece fazendo lançamentos!</p>';
+                document.getElementById('dashboard-content').innerHTML = '<p style="text-align:center; padding: 40px; color: var(--cor-texto-label);">Nenhum dado encontrado na planilha. Comece fazendo lançamentos!</p>';
                 return;
             }
             
@@ -384,9 +442,36 @@
         }
         
         function renderizarGrafico(canvasId, tipo, dados, titulo) {
+            const rootStyles = getComputedStyle(document.body);
+            const textColor = rootStyles.getPropertyValue('--cor-grafico-texto').trim();
+            const gridColor = rootStyles.getPropertyValue('--cor-grafico-borda').trim();
+
+            const chartOptions = {
+                responsive: true,
+                plugins: {
+                    title: { display: true, text: titulo, font: { size: 16 }, color: textColor },
+                    legend: { labels: { color: textColor } }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: textColor },
+                        grid: { color: gridColor }
+                    },
+                    y: {
+                        ticks: { color: textColor },
+                        grid: { color: gridColor }
+                    }
+                }
+            };
+            
+            // Para gráficos de pizza/rosca, não há eixos X/Y
+            if (tipo === 'doughnut' || tipo === 'pie') {
+                delete chartOptions.scales;
+            }
+
             if (charts[canvasId]) charts[canvasId].destroy();
             const ctx = document.getElementById(canvasId).getContext('2d');
-            charts[canvasId] = new Chart(ctx, { type: tipo, data: dados, options: { responsive: true, plugins: { title: { display: true, text: titulo, font: { size: 16 } } } } });
+            charts[canvasId] = new Chart(ctx, { type: tipo, data: dados, options: chartOptions });
         }
 
         function gerarFechamento() {
@@ -431,10 +516,39 @@
     </div>
 
     <script>
+    // Script de Gerenciamento do Tema (Dark Mode)
     (function() {
-        // Esta variável especial é preenchida pelo Code.gs
-        const statusVencimento = '<?= statusVencimento ?>';
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
 
+        const applyTheme = (theme) => {
+            if (theme === 'dark') {
+                body.classList.add('dark-mode');
+                themeToggle.textContent = '☀️';
+            } else {
+                body.classList.remove('dark-mode');
+                themeToggle.textContent = '🌙';
+            }
+            // Atualiza os gráficos quando o tema muda
+            if (typeof atualizarDashboard === 'function') {
+              atualizarDashboard();
+            }
+        };
+
+        themeToggle.addEventListener('click', () => {
+            const isDarkMode = body.classList.contains('dark-mode');
+            const newTheme = isDarkMode ? 'light' : 'dark';
+            localStorage.setItem('theme', newTheme);
+            applyTheme(newTheme);
+        });
+
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        applyTheme(savedTheme);
+    })();
+    
+    // Script de Verificação de Vencimento
+    (function() {
+        const statusVencimento = '<?= statusVencimento ?>';
         const avisoAVencer = document.getElementById('aviso-a-vencer');
         const overlayVencido = document.getElementById('vencido-overlay');
 
@@ -445,6 +559,5 @@
         }
     })();
     </script>
-
-  </body>
+    </body>
 </html>

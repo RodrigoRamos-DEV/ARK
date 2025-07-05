@@ -6,58 +6,110 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         :root {
-            --cor-primaria: #6d28d9; --cor-destaque: #8b5cf6; --cor-fundo: #f5f3f7; --cor-card: #ffffff;
-            --cor-texto: #333; --sombra-card: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
-            --cor-sucesso: #16a34a; --cor-erro: #dc2626;
+            --cor-primaria: #6d28d9; 
+            --cor-destaque: #8b5cf6; 
+            --cor-fundo: #f5f3f7;
+            --cor-card: #ffffff; 
+            --cor-texto: #333; 
+            --cor-texto-label: #555;
+            --cor-borda: #ccc;
+            --cor-input-fundo: #fff;
+            --cor-tabela-header: #f9f8fa;
+            --cor-tabela-linha-par: #f9f8fa;
+            --cor-tabela-linha-hover: #f0e9ff;
+            --sombra-card: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --cor-sucesso: #16a34a; 
+            --cor-erro: #dc2626;
         }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: var(--cor-fundo); margin: 0; padding: 20px; }
+
+        body.dark-mode {
+            --cor-fundo: #111827;
+            --cor-card: #1f2937;
+            --cor-texto: #f9fafb;
+            --cor-texto-label: #d1d5db;
+            --cor-borda: #4b5563;
+            --cor-input-fundo: #374151;
+            --cor-tabela-header: #374151;
+            --cor-tabela-linha-par: #2d3748;
+            --cor-tabela-linha-hover: #4a5568;
+            --sombra-card: 0 4px 6px -1px rgba(0,0,0,0.4), 0 2px 4px -1px rgba(0,0,0,0.2);
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+            background-color: var(--cor-fundo);
+            color: var(--cor-texto);
+            margin: 0; 
+            padding: 20px; 
+            transition: background-color 0.3s, color 0.3s;
+        }
         #loading, #access-denied { text-align: center; padding-top: 20vh; }
         #loading h2, #access-denied h2 { font-size: 1.2em; color: var(--cor-primaria); font-weight: bold; }
         .container { width: 100%; max-width: 1400px; margin: 0 auto; display: none; }
         header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 20px; }
-        .card { background-color: var(--cor-card); border-radius: 12px; box-shadow: var(--sombra-card); padding: 25px; margin-bottom: 25px; }
-        select, input, button { font-size: 1em; padding: 10px; border-radius: 6px; border: 1px solid #ccc; }
+        .card { 
+            background-color: var(--cor-card);
+            border-radius: 12px; 
+            box-shadow: var(--sombra-card);
+            padding: 25px; 
+            margin-bottom: 25px;
+            transition: background-color 0.3s;
+        }
+        select, input, button { font-size: 1em; padding: 10px; border-radius: 6px; border: 1px solid var(--cor-borda); }
+        select, input {
+            background-color: var(--cor-input-fundo);
+            color: var(--cor-texto);
+        }
         .btn { background-color: var(--cor-primaria); color: white; cursor: pointer; border: none; }
         .btn:disabled { background-color: #9ca3af; cursor: not-allowed; }
         .btn-success { background-color: var(--cor-sucesso); }
         .btn-danger { background-color: var(--cor-erro); }
-        .btn-secundario { background-color: #e5e7eb; color: #374151; border: 1px solid #ccc; }
+        .btn-secundario { background-color: #e5e7eb; color: #374151; }
+        body.dark-mode .btn-secundario {
+            background-color: #4b5563;
+            color: #f9fafb;
+            border-color: #374151;
+        }
 
         #area-selecao { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
         #area-lancamentos { display: none; margin-top: 20px; }
 
-        #area-filtros { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; background-color: #f9f8fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;}
+        #area-filtros { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; background-color: var(--cor-tabela-header); padding: 15px; border-radius: 8px; margin-bottom: 20px;}
         #area-filtros > div { display: flex; flex-direction: column; }
-        #area-filtros label { font-size: 0.9em; margin-bottom: 5px; font-weight: 500; }
+        #area-filtros label { font-size: 0.9em; margin-bottom: 5px; font-weight: 500; color: var(--cor-texto-label); }
 
         .botoes-acao { display: flex; gap: 15px; margin-bottom: 20px; align-items: center; }
         #botoes-acao-massa { display: none; margin-left: auto; gap: 15px; }
 
-        .tabela-container { min-height: 100px; max-height: 400px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 8px;}
+        .tabela-container { min-height: 100px; max-height: 400px; overflow-y: auto; border: 1px solid var(--cor-borda); border-radius: 8px;}
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #eee; white-space: nowrap; }
-        th { background-color: #f9f8fa; position: sticky; top: 0; z-index: 1; }
+        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid var(--cor-borda); white-space: nowrap; }
+        th { background-color: var(--cor-tabela-header); position: sticky; top: 0; z-index: 1; }
         th:first-child, td:first-child { width: 20px; text-align: center; }
-        tr:nth-child(even) { background-color: #f9f8fa; }
-        tr:hover { background-color: #f0e9ff; }
+        tr:nth-child(even) { background-color: var(--cor-tabela-linha-par); }
+        tr:hover { background-color: var(--cor-tabela-linha-hover); }
         td.td-acoes { width: 100px; text-align: center; }
-        td button { background: none; border: none; cursor: pointer; font-size: 16px; opacity: 0.7; }
+        td button { background: none; border: none; cursor: pointer; font-size: 16px; opacity: 0.7; color: var(--cor-texto); }
         td button:hover { opacity: 1; }
-        .tabela-vazia, .tabela-carregando { text-align: center; padding: 40px; color: #999; font-style: italic; }
-
+        .tabela-vazia, .tabela-carregando { text-align: center; padding: 40px; color: var(--cor-texto-label); font-style: italic; }
+        
+        .paginacao-container { text-align: center; margin-top: 15px; padding: 5px; }
+        .paginacao-container span { padding: 0 15px; font-weight: 500; color: var(--cor-texto-label); }
+        
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
-        .modal-box { background: white; padding: 25px; border-radius: 12px; width: 95%; max-width: 1200px; max-height: 90vh; display: flex; flex-direction: column; }
+        .modal-box { background: var(--cor-card); padding: 25px; border-radius: 12px; width: 95%; max-width: 1200px; max-height: 90vh; display: flex; flex-direction: column; }
         .modal-body { overflow-y: auto; padding-right: 10px; }
         .modal-footer { margin-top: 20px; display: flex; justify-content: space-between; align-items: center; }
         .modal-linha-form { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
         .modal-linha-form input, .modal-linha-form select { flex: 1; min-width: 80px; }
         .modal-linha-form input[type=date] { flex-basis: 150px; flex-grow: 0; }
         .modal-linha-form input[disabled] { background-color: #f0f0f0; }
+        body.dark-mode .modal-linha-form input[disabled] { background-color: #4b5563; }
         .modal-linha-form .btn-remover-linha { flex-shrink: 0; padding: 5px 10px; }
-        .modal-linha-header { display: flex; gap: 10px; margin-bottom: 5px; padding-right: 45px; border-bottom: 2px solid #eee; padding-bottom: 8px; }
-        .modal-linha-header label { flex: 1; min-width: 80px; font-weight: bold; text-align: center; font-size: 0.85em; color: #555; }
+        .modal-linha-header { display: flex; gap: 10px; margin-bottom: 5px; padding-right: 45px; border-bottom: 2px solid var(--cor-borda); padding-bottom: 8px; }
+        .modal-linha-header label { flex: 1; min-width: 80px; font-weight: bold; text-align: center; font-size: 0.85em; color: var(--cor-texto-label); }
         .modal-linha-header label.header-data { flex-basis: 150px; flex-grow: 0; }
-        .modal-bulk-edit-divider { font-weight: bold; color: var(--cor-primaria); margin-top: 20px; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+        .modal-bulk-edit-divider { font-weight: bold; color: var(--cor-primaria); margin-top: 20px; margin-bottom: 10px; border-bottom: 1px solid var(--cor-borda); padding-bottom: 5px; }
 
         #confirm-modal-box { max-width: 400px; text-align: center; }
         #confirm-modal-footer { justify-content: center; gap: 15px; margin-top:20px}
@@ -74,58 +126,27 @@
         .main-navbar { display: flex; justify-content: space-between; align-items: center; gap: 20px; background-color: #6d28d9; padding: 10px 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); position: fixed; top: 0; left: 0; width: 100%; z-index: 1001; box-sizing: border-box; }
         .navbar-left, .navbar-right { flex: 1; }
         .navbar-center { flex: 2; display: flex; justify-content: center; gap: 15px; }
-        .navbar-right { display: flex; justify-content: flex-end; }
+        .navbar-right { display: flex; justify-content: flex-end; align-items: center; }
         .navbar-logo { height: 45px; width: auto; }
         .main-navbar .nav-button { background-color: transparent; color: white; border: 2px solid transparent; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 1em; cursor: pointer; transition: all 0.2s; text-decoration: none; white-space: nowrap; }
         .main-navbar .nav-button:hover { background-color: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.5); }
         .main-navbar .nav-button.logout { background-color: rgba(220, 38, 38, 0.7); }
         .main-navbar .nav-button.logout:hover { background-color: #dc2626; border-color: transparent; }
-        /* ESTILOS PARA O SISTEMA DE AVISOS DE VENCIMENTO */
-#aviso-a-vencer {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background-color: #f59e0b; /* Laranja */
-  color: white;
-  padding: 16px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  z-index: 9998; /* Abaixo do overlay de vencido */
-  display: none; /* Começa escondido */
-  max-width: 320px;
-}
-#vencido-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(20, 20, 20, 0.9);
-  z-index: 9999;
-  display: none; /* Começa escondido */
-  justify-content: center;
-  align-items: center;
-  color: white;
-  text-align: center;
-  flex-direction: column;
-}
-.vencido-box {
-  background-color: #dc2626; /* Vermelho */
-  padding: 30px 40px;
-  border-radius: 12px;
-  max-width: 500px;
-  box-shadow: 0 0 30px rgba(0,0,0,0.5);
-}
-.vencido-box h1 {
-  font-size: 2em;
-  margin-top: 0;
-  margin-bottom: 15px;
-  color: white;
-}
-.vencido-box p {
-  font-size: 1.1em;
-  line-height: 1.6;
-}
+        #theme-toggle { font-size: 1.5em; padding: 0 10px; line-height: 1; }
+
+        #aviso-a-vencer {
+          position: fixed; bottom: 20px; right: 20px; background-color: #f59e0b; color: white;
+          padding: 16px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 9998;
+          display: none; max-width: 320px;
+        }
+        #vencido-overlay {
+          position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+          background-color: rgba(20, 20, 20, 0.9); z-index: 9999; display: none;
+          justify-content: center; align-items: center; color: white; text-align: center; flex-direction: column;
+        }
+        .vencido-box { background-color: #dc2626; padding: 30px 40px; border-radius: 12px; max-width: 500px; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
+        .vencido-box h1 { font-size: 2em; margin-top: 0; margin-bottom: 15px; color: white; }
+        .vencido-box p { font-size: 1.1em; line-height: 1.6; }
     </style>
 </head>
 <body>
@@ -141,6 +162,7 @@
             <a href="javascript:void(0);" onclick="navigateToNavbar('cadastro')" class="nav-button">Cadastro</a>
         </div>
         <div class="navbar-right">
+            <button id="theme-toggle" class="nav-button">🌙</button>
             <a href="javascript:void(0);" onclick="handleLogoutNavbar()" class="nav-button logout">Sair</a>
         </div>
     </nav>
@@ -205,8 +227,11 @@
                 </div>
                 <h2>Vendas Existentes</h2>
                 <div class="tabela-container" id="container-vendas"><div class="tabela-vazia">Selecione um funcionário para ver os dados.</div></div>
+                <div class="paginacao-container" id="paginacao-vendas-container"></div>
+                
                 <h2 style="margin-top: 20px;">Gastos Existentes</h2>
                 <div class="tabela-container" id="container-gastos"></div>
+                <div class="paginacao-container" id="paginacao-gastos-container"></div>
             </div>
         </div>
     </div>
@@ -220,9 +245,14 @@
     <div id="toast-notification"></div>
 
     <script>
+        // Bloco de script principal de Lançamentos, incluindo a versão final que funciona
         let dadosCadastro = {};
         let lancamentosAtuais = { vendas: [], gastos: [] };
         let funcionarioSelecionado = '';
+        
+        let currentPage = { vendas: 1, gastos: 1 };
+        const ITEMS_PER_PAGE = 10;
+
         const elementos = {
             funcSelect: document.getElementById('func-select'),
             areaLancamentos: document.getElementById('area-lancamentos'),
@@ -266,7 +296,10 @@
             }).getDadosCadastro(authToken);
 
             elementos.funcSelect.addEventListener('change', carregarDadosDoFuncionario);
-            Object.values(elementos.filtros).forEach(filtro => filtro.addEventListener('change', aplicarFiltrosErenderizar));
+            Object.values(elementos.filtros).forEach(filtro => filtro.addEventListener('change', () => {
+                currentPage = { vendas: 1, gastos: 1 };
+                aplicarFiltrosErenderizar();
+            }));
             document.getElementById('btn-add-linha').addEventListener('click', () => adicionarLinhaNoModal(elementos.modais.lancamento.dataset.tipo));
             document.getElementById('btn-cancelar-modal').addEventListener('click', () => elementos.modais.lancamento.style.display = 'none');
             document.getElementById('btn-salvar-modal').addEventListener('click', salvarDadosDoModal);
@@ -283,6 +316,8 @@
             if (!funcionarioSelecionado) {
                 elementos.areaLancamentos.style.display = 'none'; return;
             }
+            currentPage = { vendas: 1, gastos: 1 };
+
             elementos.areaLancamentos.style.display = 'block';
             setLoadingState(true);
             google.script.run.withSuccessHandler(resultado => {
@@ -303,31 +338,52 @@
         function popularFiltros() {
             const popularSelect = (selectEl, opcoes) => {
                 selectEl.innerHTML = '<option value="TODOS">Todos</option>';
-                [...new Set(opcoes)].sort().forEach(opt => selectEl.innerHTML += `<option value="${opt}">${opt}</option>`);
+                const setDeOpcoes = new Set(opcoes);
+                setDeOpcoes.forEach(opt => {
+                    if (opt) {
+                        selectEl.innerHTML += `<option value="${opt}">${opt}</option>`;
+                    }
+                });
+                selectEl.value = 'TODOS';
             };
-            popularSelect(elementos.filtros.produto, lancamentosAtuais.vendas.map(v => v.produto).filter(Boolean));
-            popularSelect(elementos.filtros.comprador, lancamentosAtuais.vendas.map(v => v.comprador).filter(Boolean));
-            popularSelect(elementos.filtros.insumo, lancamentosAtuais.gastos.map(g => g.insumo).filter(Boolean));
-            popularSelect(elementos.filtros.fornecedor, lancamentosAtuais.gastos.map(g => g.fornecedor).filter(Boolean));
+            
+            popularSelect(elementos.filtros.produto, lancamentosAtuais.vendas.map(v => v.produto));
+            popularSelect(elementos.filtros.comprador, lancamentosAtuais.vendas.map(v => v.comprador));
+            popularSelect(elementos.filtros.insumo, lancamentosAtuais.gastos.map(g => g.insumo));
+            popularSelect(elementos.filtros.fornecedor, lancamentosAtuais.gastos.map(g => g.fornecedor));
         }
 
         function aplicarFiltrosErenderizar() {
             const { dataInicio, dataFim, produto, comprador, insumo, fornecedor, status } = elementos.filtros;
-            const dtInicio = dataInicio.value ? new Date(dataInicio.value + 'T00:00:00') : null;
-            const dtFim = dataFim.value ? new Date(dataFim.value + 'T23:59:59') : null;
+            const dtInicio = dataInicio.value ? new Date(dataInicio.value + 'T00:00:00Z') : null;
+            const dtFim = dataFim.value ? new Date(dataFim.value + 'T23:59:59Z') : null;
             const statusFiltro = status.value;
 
             const filtroBase = (item) => {
-                return (!dtInicio || item.data >= dtInicio) &&
-                       (!dtFim || item.data <= dtFim) &&
-                       (statusFiltro === 'TODOS' || item.status === statusFiltro);
+                if (dtInicio && item.data < dtInicio) return false;
+                if (dtFim && item.data > dtFim) return false;
+                if (statusFiltro != 'TODOS' && item.status != statusFiltro) return false;
+                return true;
             };
 
-            const vendasFiltradas = lancamentosAtuais.vendas.filter(v => filtroBase(v) && (produto.value === 'TODOS' || v.produto === produto.value) && (comprador.value === 'TODOS' || v.comprador === comprador.value));
-            const gastosFiltrados = lancamentosAtuais.gastos.filter(g => filtroBase(g) && (insumo.value === 'TODOS' || g.insumo === insumo.value) && (fornecedor.value === 'TODOS' || g.fornecedor === fornecedor.value));
+            const vendasFiltradas = lancamentosAtuais.vendas.filter(v => 
+                filtroBase(v) && 
+                (produto.value == 'TODOS' || v.produto == produto.value) && 
+                (comprador.value == 'TODOS' || v.comprador == comprador.value)
+            );
+            const gastosFiltrados = lancamentosAtuais.gastos.filter(g => 
+                filtroBase(g) && 
+                (insumo.value == 'TODOS' || g.insumo == insumo.value) && 
+                (fornecedor.value == 'TODOS' || g.fornecedor == fornecedor.value)
+            );
 
             renderizarTabelas(vendasFiltradas, gastosFiltrados);
             verificarSelecao();
+        }
+
+        function mudarPagina(tipo, direcao) {
+            currentPage[tipo] += direcao;
+            aplicarFiltrosErenderizar();
         }
 
         function renderizarTabelas(vendas, gastos) {
@@ -337,17 +393,131 @@
 
         function renderizarTabela(tipo, dados) {
             const containerEl = document.getElementById(`container-${tipo}s`);
-            if (dados.length === 0) { containerEl.innerHTML = `<div class="tabela-vazia">Nenhum lançamento encontrado.</div>`; return; }
+            const paginacaoContainerEl = document.getElementById(`paginacao-${tipo}s-container`);
+
+            dados.sort((a,b) => b.data - a.data);
+
+            const totalPages = Math.ceil(dados.length / ITEMS_PER_PAGE) || 1;
+            let paginaAtual = currentPage[tipo] || 1;
+            if (paginaAtual > totalPages) paginaAtual = totalPages;
+            if (paginaAtual < 1) paginaAtual = 1;
+            currentPage[tipo] = paginaAtual;
+
+            const startIndex = (paginaAtual - 1) * ITEMS_PER_PAGE;
+            const endIndex = startIndex + ITEMS_PER_PAGE;
+            const dadosPaginados = dados.slice(startIndex, endIndex);
+
+            if (dados.length === 0) { 
+                containerEl.innerHTML = `<div class="tabela-vazia">Nenhum lançamento encontrado.</div>`; 
+                if (paginacaoContainerEl) paginacaoContainerEl.innerHTML = '';
+                return; 
+            }
+
             const cabecalhosBase = tipo === 'venda' ? ['Data', 'Qtd', 'Produto', 'Comprador', 'Valor', 'Total', 'Status', 'Ações'] : ['Data', 'Fornecedor', 'Qtd', 'Insumo', 'Valor', 'Total', 'Status', 'Ações'];
             const cabecalhos = [`<input type="checkbox" onchange="selecionarTodos(this, '${tipo}')">`, ...cabecalhosBase];
             let html = `<table><thead><tr><th>${cabecalhos.join('</th><th>')}</th></tr></thead><tbody>`;
 
-            dados.sort((a,b) => a.data - b.data).forEach(item => {
+            dadosPaginados.forEach(item => {
                 const linha = tipo === 'venda' ? `<td>${formatarData(item.data)}</td><td>${item.quantidade}</td><td>${item.produto}</td><td>${item.comprador}</td><td>${formatarMoeda(item.valor)}</td><td>${formatarMoeda(item.valorTotal)}</td><td>${item.status}</td>`
                     : `<td>${formatarData(item.data)}</td><td>${item.fornecedor || ''}</td><td>${item.quantidade}</td><td>${item.insumo}</td><td>${formatarMoeda(item.valor)}</td><td>${formatarMoeda(item.valorTotal)}</td><td>${item.status}</td>`;
                 html += `<tr><td><input type="checkbox" class="checkbox-item" data-id="${item.id}" onchange="verificarSelecao()"></td>${linha}<td class="td-acoes"><button onclick="editarLancamento('${tipo}', '${item.id}')">✏️</button><button onclick="excluirLancamento('${tipo}', '${item.id}')">🗑️</button></td></tr>`;
             });
             containerEl.innerHTML = html + '</tbody></table>';
+
+            if (paginacaoContainerEl) {
+                if (dados.length > ITEMS_PER_PAGE) {
+                    const btnAnteriorDisabled = paginaAtual === 1 ? 'disabled' : '';
+                    const btnProximaDisabled = paginaAtual === totalPages ? 'disabled' : '';
+                    paginacaoContainerEl.innerHTML = `
+                        <button class="btn btn-secundario" onclick="mudarPagina('${tipo}', -1)" ${btnAnteriorDisabled}>Anterior</button>
+                        <span>Página ${paginaAtual} de ${totalPages}</span>
+                        <button class="btn btn-secundario" onclick="mudarPagina('${tipo}', 1)" ${btnProximaDisabled}>Próxima</button>
+                    `;
+                } else {
+                    paginacaoContainerEl.innerHTML = '';
+                }
+            }
+        }
+        
+        function encontrarUltimoPreco(tipo, criterios) {
+            const colecao = (tipo === 'venda') ? lancamentosAtuais.vendas : lancamentosAtuais.gastos;
+            if (!colecao || colecao.length === 0) return null;
+
+            const correspondencias = colecao.filter(item => {
+                return Object.keys(criterios).every(chave => {
+                    return item[chave] && criterios[chave] && String(item[chave]).toLowerCase() == String(criterios[chave]).toLowerCase();
+                });
+            });
+
+            if (correspondencias.length === 0) return null;
+
+            correspondencias.sort((a, b) => b.data - a.data);
+            return correspondencias[0].valor;
+        }
+
+        function adicionarLinhaNoModal(tipo, dados = {}, isBulkEdit = false) {
+            const div = document.createElement('div');
+            div.className = 'modal-linha-form';
+            if (isBulkEdit || dados.id) { div.dataset.id = dados.id; div.dataset.tipo = tipo; }
+
+            const campoProduto = `<input type="text" list="datalist-produtos" class="campo-produto" placeholder="Digite o produto" value="${dados.produto || ''}">`;
+            const campoInsumo = `<input type="text" list="datalist-insumos" class="campo-insumo" placeholder="Digite o insumo" value="${dados.insumo || ''}">`;
+            const campoFornecedor = `<input type="text" list="datalist-fornecedores" class="campo-fornecedor" placeholder="Digite o fornecedor" value="${dados.fornecedor || ''}">`;
+            const selects = {
+                comprador: criarSelect(dadosCadastro.compradores || [], dados.comprador, 'campo-comprador'),
+                status: criarSelect(['PAGO', 'A PAGAR'], dados.status || 'A PAGAR')
+            };
+            const campoValor = `<input type="text" inputmode="decimal" class="campo-valor" oninput="formatarInputComoMoeda(event)" placeholder="R$ 0,00" value="${dados.valor ? formatarMoeda(dados.valor) : ''}">`;
+            const camposHtml = tipo === 'venda' ? `<input type="date" class="campo-data" value="${formatarDataParaInput(dados.data)}"><input type="number" placeholder="Qtd" class="campo-quantidade" value="${dados.quantidade || ''}">${campoProduto}${selects.comprador.outerHTML}${campoValor}<input type="text" placeholder="Total" class="campo-valor-total" disabled value="${dados.valorTotal ? formatarMoeda(dados.valorTotal) : ''}">${selects.status.outerHTML}`
+                : `<input type="date" class="campo-data" value="${formatarDataParaInput(dados.data)}">${campoFornecedor}<input type="number" placeholder="Qtd" class="campo-quantidade" value="${dados.quantidade || ''}">${campoInsumo}${campoValor}<input type="text" placeholder="Total" class="campo-valor-total" disabled value="${dados.valorTotal ? formatarMoeda(dados.valorTotal) : ''}">${selects.status.outerHTML}`;
+
+            const displayBotaoRemover = (elementos.modais.lancamento.dataset.mode === 'single' && !elementos.modais.lancamento.dataset.idEditado);
+            div.innerHTML = camposHtml + `<button class="btn btn-danger btn-remover-linha" style="display:${displayBotaoRemover ? 'block' : 'none'}" onclick="this.parentElement.remove()">X</button>`;
+            elementos.modais.lancamentoBody.appendChild(div);
+            div.querySelectorAll('.campo-quantidade, .campo-valor').forEach(el => el.addEventListener('input', calcularTotal));
+
+            const valorInput = div.querySelector('.campo-valor');
+            const buscarEPreencherPreco = () => {
+                if (valorInput.value.trim() !== '' && parseMoeda(valorInput.value) > 0) {
+                    return;
+                }
+                let precoEncontrado = null;
+                if (tipo === 'venda') {
+                    const produto = div.querySelector('.campo-produto').value;
+                    const comprador = div.querySelector('.campo-comprador').value;
+                    if (produto && comprador) {
+                        precoEncontrado = encontrarUltimoPreco('venda', { produto, comprador });
+                    }
+                } else {
+                    const insumo = div.querySelector('.campo-insumo').value;
+                    const fornecedor = div.querySelector('.campo-fornecedor').value;
+                    if (insumo && fornecedor) {
+                        precoEncontrado = encontrarUltimoPreco('gasto', { insumo, fornecedor });
+                    }
+                }
+                if (precoEncontrado !== null) {
+                    valorInput.value = formatarMoeda(precoEncontrado);
+                    valorInput.dispatchEvent(new Event('input'));
+                }
+            };
+
+            if (tipo === 'venda') {
+                div.querySelector('.campo-produto').addEventListener('change', buscarEPreencherPreco);
+                div.querySelector('.campo-comprador').addEventListener('change', buscarEPreencherPreco);
+            } else {
+                div.querySelector('.campo-insumo').addEventListener('change', buscarEPreencherPreco);
+                div.querySelector('.campo-fornecedor').addEventListener('change', buscarEPreencherPreco);
+            }
+        }
+        
+        function criarSelect(opcoes, selecionado, classe = '') {
+            const select = document.createElement('select');
+            if (classe) select.className = classe;
+            opcoes.sort().forEach(opt => select.innerHTML += `<option value="${opt}" ${opt == selecionado ? 'selected' : ''}>${opt}</option>`);
+            if(!opcoes.includes(selecionado) || !selecionado) {
+                select.innerHTML = `<option value="" selected disabled>Selecione</option>` + select.innerHTML;
+            }
+            return select;
         }
 
         function getIdsSelecionados() { return Array.from(document.querySelectorAll('.checkbox-item:checked')).map(cb => cb.dataset.id); }
@@ -403,28 +573,6 @@
             adicionarLinhaNoModal(tipo, dadosParaEditar || {});
             lancamento.dataset.idEditado = dadosParaEditar ? dadosParaEditar.id : '';
             lancamento.dataset.tipo = tipo;
-        }
-
-        function adicionarLinhaNoModal(tipo, dados = {}, isBulkEdit = false) {
-            const div = document.createElement('div');
-            div.className = 'modal-linha-form';
-            if (isBulkEdit || dados.id) { div.dataset.id = dados.id; div.dataset.tipo = tipo; }
-
-            const campoProduto = `<input type="text" list="datalist-produtos" class="campo-produto" placeholder="Digite o produto" value="${dados.produto || ''}">`;
-            const campoInsumo = `<input type="text" list="datalist-insumos" class="campo-insumo" placeholder="Digite o insumo" value="${dados.insumo || ''}">`;
-            const campoFornecedor = `<input type="text" list="datalist-fornecedores" class="campo-fornecedor" placeholder="Digite o fornecedor" value="${dados.fornecedor || ''}">`;
-            const selects = {
-                comprador: criarSelect(dadosCadastro.compradores || [], dados.comprador),
-                status: criarSelect(['PAGO', 'A PAGAR'], dados.status || 'A PAGAR')
-            };
-            const campoValor = `<input type="text" inputmode="decimal" class="campo-valor" oninput="formatarInputComoMoeda(event)" placeholder="R$ 0,00" value="${dados.valor ? formatarMoeda(dados.valor) : ''}">`;
-            const camposHtml = tipo === 'venda' ? `<input type="date" class="campo-data" value="${formatarDataParaInput(dados.data)}"><input type="number" placeholder="Qtd" class="campo-quantidade" value="${dados.quantidade || ''}">${campoProduto}${selects.comprador.outerHTML}${campoValor}<input type="text" placeholder="Total" class="campo-valor-total" disabled value="${dados.valorTotal ? formatarMoeda(dados.valorTotal) : ''}">${selects.status.outerHTML}`
-                : `<input type="date" class="campo-data" value="${formatarDataParaInput(dados.data)}">${campoFornecedor}<input type="number" placeholder="Qtd" class="campo-quantidade" value="${dados.quantidade || ''}">${campoInsumo}${campoValor}<input type="text" placeholder="Total" class="campo-valor-total" disabled value="${dados.valorTotal ? formatarMoeda(dados.valorTotal) : ''}">${selects.status.outerHTML}`;
-
-            const displayBotaoRemover = (elementos.modais.lancamento.dataset.mode === 'single' && !elementos.modais.lancamento.dataset.idEditado);
-            div.innerHTML = camposHtml + `<button class="btn btn-danger btn-remover-linha" style="display:${displayBotaoRemover ? 'block' : 'none'}" onclick="this.parentElement.remove()">X</button>`;
-            elementos.modais.lancamentoBody.appendChild(div);
-            div.querySelectorAll('.campo-quantidade, .campo-valor').forEach(el => el.addEventListener('input', calcularTotal));
         }
 
         function salvarDadosDoModal() {
@@ -495,7 +643,7 @@
             novoBtn.addEventListener('click', () => { elementos.modais.confirm.style.display = 'none'; callback(); });
         }
 
-        function setLoadingState(isLoading, message = "Carregando...") { document.querySelectorAll('button, select, input').forEach(el => el.disabled = isLoading); if (isLoading) { document.getElementById('container-vendas').innerHTML = `<div class="tabela-carregando">${message}</div>`; document.getElementById('container-gastos').innerHTML = ``; } else { document.querySelectorAll('button, select, input').forEach(el => el.disabled = false); } }
+        function setLoadingState(isLoading, message = "Carregando...") { document.querySelectorAll('button, select, input').forEach(el => el.disabled = isLoading); if (isLoading) { document.getElementById('container-vendas').innerHTML = `<div class="tabela-carregando">${message}</div>`; document.getElementById('container-gastos').innerHTML = `<div class="tabela-carregando">${message}</div>`; } else { document.querySelectorAll('button, select, input').forEach(el => el.disabled = false); } }
         function showToast(message, type = 'success') { const toast = document.getElementById('toast-notification'); toast.textContent = message; toast.className = 'show ' + type; setTimeout(() => { toast.className = toast.className.replace('show', ''); }, 3000); }
 
         function calcularTotal(event) {
@@ -503,15 +651,6 @@
             const qtd = parseFloat(linha.querySelector('.campo-quantidade').value) || 0;
             const valor = parseMoeda(linha.querySelector('.campo-valor').value);
             linha.querySelector('.campo-valor-total').value = formatarMoeda(qtd * valor);
-        }
-
-        function criarSelect(opcoes, selecionado) {
-            const select = document.createElement('select');
-            opcoes.sort().forEach(opt => select.innerHTML += `<option value="${opt}" ${opt === selecionado ? 'selected' : ''}>${opt}</option>`);
-            if(!opcoes.includes(selecionado) || !selecionado) {
-                select.innerHTML = `<option value="" selected disabled>Selecione</option>` + select.innerHTML;
-            }
-            return select;
         }
 
         function formatarData(data) { return data ? data.toLocaleDateString('pt-BR', {timeZone: 'UTC'}) : ''; }
@@ -522,27 +661,47 @@
         function formatarInputComoMoeda(event) { const input = event.target; let valor = input.value.replace(/\D/g, ''); if (valor === '') { input.value = ''; return; } valor = (parseInt(valor, 10) / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); input.value = valor; }
     </script>
 
-    <div id="aviso-licenca" style="display: none; position: fixed; bottom: 20px; left: 20px; color: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 9999; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-        <strong>Aviso Importante:</strong>
-        <p id="aviso-licenca-texto" style="margin: 5px 0 0 0;"></p>
-    </div>
+    <script>
+    // Script de Gerenciamento do Tema (Dark Mode)
+    (function() {
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
 
-    <div id="vencido-overlay">...</div>
-      <div id="aviso-a-vencer">...</div>
-<script>
-(function() {
-    // Esta variável especial é preenchida pelo Code.gs
-    const statusVencimento = '<?= statusVencimento ?>';
+        const applyTheme = (theme) => {
+            if (theme === 'dark') {
+                body.classList.add('dark-mode');
+                if(themeToggle) themeToggle.textContent = '☀️';
+            } else {
+                body.classList.remove('dark-mode');
+                if(themeToggle) themeToggle.textContent = '🌙';
+            }
+        };
 
-    const avisoAVencer = document.getElementById('aviso-a-vencer');
-    const overlayVencido = document.getElementById('vencido-overlay');
+        if(themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                const isDarkMode = body.classList.contains('dark-mode');
+                const newTheme = isDarkMode ? 'light' : 'dark';
+                localStorage.setItem('theme', newTheme);
+                applyTheme(newTheme);
+            });
+        }
 
-    if (statusVencimento === 'VENCIDO') {
-        if (overlayVencido) overlayVencido.style.display = 'flex';
-    } else if (statusVencimento === 'A VENCER') {
-        if (avisoAVencer) avisoAVencer.style.display = 'block';
-    }
-})();
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        applyTheme(savedTheme);
+    })();
+    
+    // Script de Verificação de Vencimento
+    (function() {
+        const statusVencimento = '<?= statusVencimento ?>';
+        const avisoAVencer = document.getElementById('aviso-a-vencer');
+        const overlayVencido = document.getElementById('vencido-overlay');
+
+        if (statusVencimento === 'VENCIDO') {
+            if (overlayVencido) overlayVencido.style.display = 'flex';
+        } else if (statusVencimento === 'A VENCER') {
+            if (avisoAVencer) avisoAVencer.style.display = 'block';
+        }
+    })();
 </script>
-    </body>
+</body>
 </html>
