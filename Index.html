@@ -53,6 +53,53 @@
       .main-navbar .nav-button:hover { background-color: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.5); }
       .main-navbar .nav-button.logout { background-color: rgba(220, 38, 38, 0.7); }
       .main-navbar .nav-button.logout:hover { background-color: #dc2626; border-color: transparent; }
+      
+      /* ESTILOS PARA O SISTEMA DE AVISOS DE VENCIMENTO */
+      #aviso-a-vencer {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background-color: #f59e0b;
+        color: white;
+        padding: 16px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        z-index: 9998;
+        display: none;
+        max-width: 320px;
+      }
+      #vencido-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(20, 20, 20, 0.9);
+        z-index: 9999;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        text-align: center;
+        flex-direction: column;
+      }
+      .vencido-box {
+        background-color: #dc2626;
+        padding: 30px 40px;
+        border-radius: 12px;
+        max-width: 500px;
+        box-shadow: 0 0 30px rgba(0,0,0,0.5);
+      }
+      .vencido-box h1 {
+        font-size: 2em;
+        margin-top: 0;
+        margin-bottom: 15px;
+        color: white;
+      }
+      .vencido-box p {
+        font-size: 1.1em;
+        line-height: 1.6;
+      }
     </style>
   </head>
   <body>
@@ -317,7 +364,7 @@
               primaryChartTitle = 'Vendas por Produto';
             } else if (tipoDeVisualizacao === 'GASTOS') {
               primaryChartLabels = Object.keys(gastosPorInsumo);
-              primaryChartData = Object.values(gastosPorInsumo);
+              primaryChartData = Object.values(gastosPorInumo);
               primaryChartTitle = 'Gastos por Insumo';
             } else { 
               primaryChartLabels = Object.keys(vendasPorProduto); 
@@ -371,5 +418,33 @@
                 .gerarPaginaDeFechamento(authToken, dadosParaEnviar, nomeFuncionario, nomeComprador, tipoDeVisualizacao, nomeCliente); 
         }
     </script>
+    
+    <div id="vencido-overlay">
+      <div class="vencido-box">
+        <h1>Sua Licença Expirou</h1>
+        <p>Para continuar utilizando o sistema, por favor, entre em contato com o suporte para regularizar sua situação.</p>
+      </div>
+    </div>
+    <div id="aviso-a-vencer">
+      <strong>Aviso de Vencimento</strong>
+      <p>Sua licença está próxima do vencimento. Contate o suporte para renovação e evitar o bloqueio do sistema.</p>
+    </div>
+
+    <script>
+    (function() {
+        // Esta variável especial é preenchida pelo Code.gs
+        const statusVencimento = '<?= statusVencimento ?>';
+
+        const avisoAVencer = document.getElementById('aviso-a-vencer');
+        const overlayVencido = document.getElementById('vencido-overlay');
+
+        if (statusVencimento === 'VENCIDO') {
+            if (overlayVencido) overlayVencido.style.display = 'flex';
+        } else if (statusVencimento === 'A VENCER') {
+            if (avisoAVencer) avisoAVencer.style.display = 'block';
+        }
+    })();
+    </script>
+
   </body>
 </html>

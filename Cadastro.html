@@ -5,6 +5,7 @@
     <title>Área de Cadastro</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
+      
         :root {
             --cor-primaria: #6d28d9; --cor-destaque: #8b5cf6; --cor-fundo: #f5f3f7; --cor-card: #ffffff;
             --cor-texto: #333; --sombra-card: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
@@ -18,10 +19,10 @@
         .botoes-gerenciamento { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 20px; }
         .btn-gerenciar { background-color: var(--cor-card); color: var(--cor-primaria); border: 1px solid var(--cor-primaria); padding: 25px; border-radius: 12px; cursor: pointer; transition: all 0.2s; font-size: 1.2em; font-weight: bold; box-shadow: var(--sombra-card); }
         .btn-gerenciar:hover { background-color: var(--cor-primaria); color: white; transform: translateY(-3px); box-shadow: 0 8px 15px -3px rgba(0,0,0,0.15); }
-        
+
         #access-denied { display: none; text-align: center; padding-top: 20vh; }
         #access-denied h2 { font-size: 1.2em; color: var(--cor-primaria); font-weight: bold; }
-      
+
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-box { background: white; padding: 25px; border-radius: 12px; width: 95%; max-width: 600px; max-height: 90vh; display: flex; flex-direction: column; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
@@ -46,12 +47,12 @@
 
         .modal-overlay-hidden { display: none !important; }
         #custom-modal-overlay { z-index: 1001; }
-        
+
         #toast-notification { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 2000; left: 50%; transform: translateX(-50%); bottom: 30px; opacity: 0; transition: visibility 0.5s, opacity 0.5s linear; }
         #toast-notification.show { visibility: visible; opacity: 1; }
         #toast-notification.success { background-color: var(--cor-sucesso); }
         #toast-notification.error { background-color: var(--cor-erro); }
-        
+
         body { padding-top: 70px; }
         .main-navbar { display: flex; justify-content: space-between; align-items: center; gap: 20px; background-color: #6d28d9; padding: 10px 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); position: fixed; top: 0; left: 0; width: 100%; z-index: 999; box-sizing: border-box; }
         .navbar-left, .navbar-right { flex: 1; }
@@ -62,6 +63,52 @@
         .main-navbar .nav-button:hover { background-color: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.5); }
         .main-navbar .nav-button.logout { background-color: rgba(220, 38, 38, 0.7); }
         .main-navbar .nav-button.logout:hover { background-color: #dc2626; border-color: transparent; }
+        /* ESTILOS PARA O SISTEMA DE AVISOS DE VENCIMENTO */
+#aviso-a-vencer {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #f59e0b; /* Laranja */
+  color: white;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  z-index: 9998; /* Abaixo do overlay de vencido */
+  display: none; /* Começa escondido */
+  max-width: 320px;
+}
+#vencido-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(20, 20, 20, 0.9);
+  z-index: 9999;
+  display: none; /* Começa escondido */
+  justify-content: center;
+  align-items: center;
+  color: white;
+  text-align: center;
+  flex-direction: column;
+}
+.vencido-box {
+  background-color: #dc2626; /* Vermelho */
+  padding: 30px 40px;
+  border-radius: 12px;
+  max-width: 500px;
+  box-shadow: 0 0 30px rgba(0,0,0,0.5);
+}
+.vencido-box h1 {
+  font-size: 2em;
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: white;
+}
+.vencido-box p {
+  font-size: 1.1em;
+  line-height: 1.6;
+}
     </style>
 </head>
 <body>
@@ -80,7 +127,7 @@
             <a href="javascript:void(0);" onclick="handleLogoutNavbar()" class="nav-button logout">Sair</a>
         </div>
     </nav>
-    
+
     <script>
         const authToken = '<?= authToken ?>';
         function navigateToNavbar(page) {
@@ -109,7 +156,16 @@
             <button class="btn-gerenciar" onclick="abrirModalGerenciamento('funcionario')">Gerenciar Funcionários</button>
         </div>
     </div>
-
+<div id="vencido-overlay">
+  <div class="vencido-box">
+    <h1>Sua Licença Expirou</h1>
+    <p>Para continuar utilizando o sistema, por favor, entre em contato com o suporte para regularizar sua situação.</p>
+  </div>
+</div>
+<div id="aviso-a-vencer">
+  <strong>Aviso de Vencimento</strong>
+  <p>Sua licença está próxima do vencimento. Contate o suporte para renovação e evitar o bloqueio do sistema.</p>
+</div>
     <div id="gerenciamento-modal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
@@ -120,7 +176,7 @@
                 </div>
         </div>
     </div>
-    
+
     <div id="custom-modal-overlay" class="modal-overlay-hidden">
         <div id="custom-modal-box">
             <h3 id="custom-modal-title"></h3>
@@ -134,11 +190,11 @@
             </div>
         </div>
     </div>
-    
+
     <div id="toast-notification"></div>
 
     <script>
-        let dadosGlobais = {}; 
+        let dadosGlobais = {};
 
         const elementos = {
             loading: document.getElementById('loading'),
@@ -166,7 +222,7 @@
             elementos.mainContainer.style.display = 'block';
             carregarDadosIniciais();
         });
-        
+
         function carregarDadosIniciais() {
             elementos.loading.style.display = 'block';
             elementos.mainContainer.style.display = 'none';
@@ -207,7 +263,7 @@
 
         function renderizarConteudoModal(tipo) {
             const body = elementos.gerenciamentoModal.body;
-            body.innerHTML = ''; 
+            body.innerHTML = '';
 
             if (tipo === 'funcionario') {
                 renderizarModalFuncionarios(body);
@@ -215,13 +271,13 @@
                 renderizarModalItens(body, tipo);
             }
         }
-        
+
         function renderizarModalItens(container, tipo) {
             const pluralMap = { produto: 'produtos', comprador: 'compradores', insumo: 'insumos', fornecedor: 'fornecedores' };
             const tipoPlural = pluralMap[tipo];
             const placeholder = `Nome do novo ${tipo}`;
             const listaItens = dadosGlobais.cadastro[tipoPlural] || [];
-            
+
             let html = `<div class="form-add-item"><input type="text" id="input-add-${tipo}" placeholder="${placeholder}"><button class="btn-add" onclick="adicionarItemModal()">Adicionar</button></div><ul class="lista-gerenciamento" id="lista-modal-${tipo}">`;
             if (listaItens.length > 0) {
                 listaItens.sort((a,b) => a.localeCompare(b)).forEach(item => {
@@ -239,7 +295,7 @@
             let options = listaFuncionarios.map(f => `<option value="${f}">${f}</option>`).join('');
             container.innerHTML = `<div class="form-gerenciar-func"><h4>Criar Novo Funcionário</h4><div class="form-group"><input type="text" id="input-novo-funcionario-modal" placeholder="Nome do novo funcionário"><button class="btn-add" onclick="adicionarNovoFuncionarioModal()">Criar</button></div><hr><h4>Deletar Funcionário Existente</h4><div class="form-group"><select id="select-funcionario-modal"><option value="">Selecione um funcionário</option>${options}</select><button class="btn-danger" onclick="deletarFuncionarioModal()">Deletar</button></div></div>`;
         }
-        
+
         function showToast(message, type = 'success', duration = 3000) {
             const toast = document.getElementById('toast-notification');
             if(!toast) return;
@@ -253,7 +309,7 @@
             const input = document.getElementById(`input-add-${tipo}`);
             const valor = input.value.trim();
             if (!valor) return;
-            
+
             const btn = input.nextElementSibling;
             btn.disabled = true;
             input.disabled = true;
@@ -410,5 +466,28 @@
         elementos.customModal.btnCancel.addEventListener('click', hideCustomModal);
         elementos.customModal.overlay.addEventListener('click', (e) => { if (e.target === elementos.customModal.overlay) hideCustomModal(); });
     </script>
-</body>
+
+    <div id="aviso-licenca" style="display: none; position: fixed; bottom: 20px; left: 20px; color: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 9999; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+        <strong>Aviso Importante:</strong>
+        <p id="aviso-licenca-texto" style="margin: 5px 0 0 0;"></p>
+    </div>
+    <div id="vencido-overlay">...</div>
+      <div id="aviso-a-vencer">...</div>
+<script>
+(function() {
+    // Esta variável especial é preenchida pelo Code.gs
+    const statusVencimento = '<?= statusVencimento ?>';
+
+    const avisoAVencer = document.getElementById('aviso-a-vencer');
+    const overlayVencido = document.getElementById('vencido-overlay');
+
+    if (statusVencimento === 'VENCIDO') {
+        if (overlayVencido) overlayVencido.style.display = 'flex';
+    } else if (statusVencimento === 'A VENCER') {
+        if (avisoAVencer) avisoAVencer.style.display = 'block';
+    }
+})();
+</script>
+
+    </body>
 </html>

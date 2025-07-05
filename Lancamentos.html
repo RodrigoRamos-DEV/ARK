@@ -25,11 +25,11 @@
 
         #area-selecao { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
         #area-lancamentos { display: none; margin-top: 20px; }
-        
+
         #area-filtros { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; background-color: #f9f8fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;}
         #area-filtros > div { display: flex; flex-direction: column; }
         #area-filtros label { font-size: 0.9em; margin-bottom: 5px; font-weight: 500; }
-        
+
         .botoes-acao { display: flex; gap: 15px; margin-bottom: 20px; align-items: center; }
         #botoes-acao-massa { display: none; margin-left: auto; gap: 15px; }
 
@@ -66,7 +66,7 @@
         #toast-notification.show { visibility: visible; opacity: 1; }
         #toast-notification.success { background-color: var(--cor-sucesso); }
         #toast-notification.error { background-color: var(--cor-erro); }
-        
+
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
 
@@ -80,10 +80,56 @@
         .main-navbar .nav-button:hover { background-color: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.5); }
         .main-navbar .nav-button.logout { background-color: rgba(220, 38, 38, 0.7); }
         .main-navbar .nav-button.logout:hover { background-color: #dc2626; border-color: transparent; }
+        /* ESTILOS PARA O SISTEMA DE AVISOS DE VENCIMENTO */
+#aviso-a-vencer {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #f59e0b; /* Laranja */
+  color: white;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  z-index: 9998; /* Abaixo do overlay de vencido */
+  display: none; /* Começa escondido */
+  max-width: 320px;
+}
+#vencido-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(20, 20, 20, 0.9);
+  z-index: 9999;
+  display: none; /* Começa escondido */
+  justify-content: center;
+  align-items: center;
+  color: white;
+  text-align: center;
+  flex-direction: column;
+}
+.vencido-box {
+  background-color: #dc2626; /* Vermelho */
+  padding: 30px 40px;
+  border-radius: 12px;
+  max-width: 500px;
+  box-shadow: 0 0 30px rgba(0,0,0,0.5);
+}
+.vencido-box h1 {
+  font-size: 2em;
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: white;
+}
+.vencido-box p {
+  font-size: 1.1em;
+  line-height: 1.6;
+}
     </style>
 </head>
 <body>
-    
+
     <nav class="main-navbar">
         <div class="navbar-left">
              <img src="https://i.postimg.cc/Qd98gFMF/Sistema-ARK.webp" alt="Logo" class="navbar-logo">
@@ -98,7 +144,16 @@
             <a href="javascript:void(0);" onclick="handleLogoutNavbar()" class="nav-button logout">Sair</a>
         </div>
     </nav>
-
+<div id="vencido-overlay">
+  <div class="vencido-box">
+    <h1>Sua Licença Expirou</h1>
+    <p>Para continuar utilizando o sistema, por favor, entre em contato com o suporte para regularizar sua situação.</p>
+  </div>
+</div>
+<div id="aviso-a-vencer">
+  <strong>Aviso de Vencimento</strong>
+  <p>Sua licença está próxima do vencimento. Contate o suporte para renovação e evitar o bloqueio do sistema.</p>
+</div>
     <script>
         const authToken = '<?= authToken ?>';
         function navigateToNavbar(page) {
@@ -120,7 +175,7 @@
     </div>
 
     <div class="container" id="main-container">
-        
+
         <div class="card">
             <div id="area-selecao">
                 <label for="func-select"><strong>Selecione o Funcionário:</strong></label>
@@ -155,7 +210,7 @@
             </div>
         </div>
     </div>
-    
+
     <datalist id="datalist-produtos"></datalist>
     <datalist id="datalist-insumos"></datalist>
     <datalist id="datalist-fornecedores"></datalist>
@@ -176,13 +231,13 @@
             botoes: { acaoMassa: document.getElementById('botoes-acao-massa') },
             datalists: { produtos: document.getElementById('datalist-produtos'), insumos: document.getElementById('datalist-insumos'), fornecedores: document.getElementById('datalist-fornecedores') }
         };
-        
+
         window.addEventListener('load', () => {
             document.getElementById('loading').style.display = 'none';
             document.getElementById('main-container').style.display = 'block';
             iniciarPagina();
         });
-        
+
         function iniciarPagina() {
             google.script.run.withSuccessHandler(lista => {
                 if (lista.erro) { showToast('Erro: ' + lista.erro, 'error'); return; }
@@ -190,15 +245,15 @@
                 select.innerHTML = '';
                 if (lista && lista.length > 0) {
                     lista.forEach(f => select.innerHTML += `<option value="${f}">${f}</option>`);
-                    select.value = lista[0]; 
-                    carregarDadosDoFuncionario(); 
+                    select.value = lista[0];
+                    carregarDadosDoFuncionario();
                 } else {
                     select.innerHTML = '<option value="">Nenhum funcionário encontrado</option>';
                     elementos.areaLancamentos.innerHTML = '<p style="text-align:center; padding: 20px;">Não há funcionários cadastrados.</p>';
                     elementos.areaLancamentos.style.display = 'block';
                 }
             }).getFuncionarios(authToken);
-            
+
             google.script.run.withSuccessHandler(dados => {
                 if (!dados.erro) {
                     dadosCadastro = dados;
@@ -209,7 +264,7 @@
                     showToast('Erro: ' + dados.erro, 'error');
                 }
             }).getDadosCadastro(authToken);
-            
+
             elementos.funcSelect.addEventListener('change', carregarDadosDoFuncionario);
             Object.values(elementos.filtros).forEach(filtro => filtro.addEventListener('change', aplicarFiltrosErenderizar));
             document.getElementById('btn-add-linha').addEventListener('click', () => adicionarLinhaNoModal(elementos.modais.lancamento.dataset.tipo));
@@ -233,8 +288,8 @@
             google.script.run.withSuccessHandler(resultado => {
                 setLoadingState(false);
                 if (resultado.sucesso) {
-                    lancamentosAtuais = { 
-                        vendas: resultado.vendas.map(v => ({...v, data: new Date(v.data), tipo: 'venda'})), 
+                    lancamentosAtuais = {
+                        vendas: resultado.vendas.map(v => ({...v, data: new Date(v.data), tipo: 'venda'})),
                         gastos: resultado.gastos.map(g => ({...g, data: new Date(g.data), tipo: 'gasto'}))
                     };
                     popularFiltros();
@@ -255,7 +310,7 @@
             popularSelect(elementos.filtros.insumo, lancamentosAtuais.gastos.map(g => g.insumo).filter(Boolean));
             popularSelect(elementos.filtros.fornecedor, lancamentosAtuais.gastos.map(g => g.fornecedor).filter(Boolean));
         }
-        
+
         function aplicarFiltrosErenderizar() {
             const { dataInicio, dataFim, produto, comprador, insumo, fornecedor, status } = elementos.filtros;
             const dtInicio = dataInicio.value ? new Date(dataInicio.value + 'T00:00:00') : null;
@@ -263,14 +318,14 @@
             const statusFiltro = status.value;
 
             const filtroBase = (item) => {
-                return (!dtInicio || item.data >= dtInicio) && 
+                return (!dtInicio || item.data >= dtInicio) &&
                        (!dtFim || item.data <= dtFim) &&
                        (statusFiltro === 'TODOS' || item.status === statusFiltro);
             };
 
             const vendasFiltradas = lancamentosAtuais.vendas.filter(v => filtroBase(v) && (produto.value === 'TODOS' || v.produto === produto.value) && (comprador.value === 'TODOS' || v.comprador === comprador.value));
             const gastosFiltrados = lancamentosAtuais.gastos.filter(g => filtroBase(g) && (insumo.value === 'TODOS' || g.insumo === insumo.value) && (fornecedor.value === 'TODOS' || g.fornecedor === fornecedor.value));
-            
+
             renderizarTabelas(vendasFiltradas, gastosFiltrados);
             verificarSelecao();
         }
@@ -286,7 +341,7 @@
             const cabecalhosBase = tipo === 'venda' ? ['Data', 'Qtd', 'Produto', 'Comprador', 'Valor', 'Total', 'Status', 'Ações'] : ['Data', 'Fornecedor', 'Qtd', 'Insumo', 'Valor', 'Total', 'Status', 'Ações'];
             const cabecalhos = [`<input type="checkbox" onchange="selecionarTodos(this, '${tipo}')">`, ...cabecalhosBase];
             let html = `<table><thead><tr><th>${cabecalhos.join('</th><th>')}</th></tr></thead><tbody>`;
-            
+
             dados.sort((a,b) => a.data - b.data).forEach(item => {
                 const linha = tipo === 'venda' ? `<td>${formatarData(item.data)}</td><td>${item.quantidade}</td><td>${item.produto}</td><td>${item.comprador}</td><td>${formatarMoeda(item.valor)}</td><td>${formatarMoeda(item.valorTotal)}</td><td>${item.status}</td>`
                     : `<td>${formatarData(item.data)}</td><td>${item.fornecedor || ''}</td><td>${item.quantidade}</td><td>${item.insumo}</td><td>${formatarMoeda(item.valor)}</td><td>${formatarMoeda(item.valorTotal)}</td><td>${item.status}</td>`;
@@ -309,7 +364,7 @@
                 enviarDadosParaServidor(dadosParaEnviar, 'Itens excluídos com sucesso.');
             });
         }
-        
+
         function abrirModalEdicaoMassa() {
             const ids = getIdsSelecionados(); if (ids.length === 0) return;
             const { lancamento, lancamentoTitulo, lancamentoBody } = elementos.modais;
@@ -349,12 +404,12 @@
             lancamento.dataset.idEditado = dadosParaEditar ? dadosParaEditar.id : '';
             lancamento.dataset.tipo = tipo;
         }
-        
+
         function adicionarLinhaNoModal(tipo, dados = {}, isBulkEdit = false) {
             const div = document.createElement('div');
             div.className = 'modal-linha-form';
             if (isBulkEdit || dados.id) { div.dataset.id = dados.id; div.dataset.tipo = tipo; }
-            
+
             const campoProduto = `<input type="text" list="datalist-produtos" class="campo-produto" placeholder="Digite o produto" value="${dados.produto || ''}">`;
             const campoInsumo = `<input type="text" list="datalist-insumos" class="campo-insumo" placeholder="Digite o insumo" value="${dados.insumo || ''}">`;
             const campoFornecedor = `<input type="text" list="datalist-fornecedores" class="campo-fornecedor" placeholder="Digite o fornecedor" value="${dados.fornecedor || ''}">`;
@@ -365,13 +420,13 @@
             const campoValor = `<input type="text" inputmode="decimal" class="campo-valor" oninput="formatarInputComoMoeda(event)" placeholder="R$ 0,00" value="${dados.valor ? formatarMoeda(dados.valor) : ''}">`;
             const camposHtml = tipo === 'venda' ? `<input type="date" class="campo-data" value="${formatarDataParaInput(dados.data)}"><input type="number" placeholder="Qtd" class="campo-quantidade" value="${dados.quantidade || ''}">${campoProduto}${selects.comprador.outerHTML}${campoValor}<input type="text" placeholder="Total" class="campo-valor-total" disabled value="${dados.valorTotal ? formatarMoeda(dados.valorTotal) : ''}">${selects.status.outerHTML}`
                 : `<input type="date" class="campo-data" value="${formatarDataParaInput(dados.data)}">${campoFornecedor}<input type="number" placeholder="Qtd" class="campo-quantidade" value="${dados.quantidade || ''}">${campoInsumo}${campoValor}<input type="text" placeholder="Total" class="campo-valor-total" disabled value="${dados.valorTotal ? formatarMoeda(dados.valorTotal) : ''}">${selects.status.outerHTML}`;
-            
+
             const displayBotaoRemover = (elementos.modais.lancamento.dataset.mode === 'single' && !elementos.modais.lancamento.dataset.idEditado);
             div.innerHTML = camposHtml + `<button class="btn btn-danger btn-remover-linha" style="display:${displayBotaoRemover ? 'block' : 'none'}" onclick="this.parentElement.remove()">X</button>`;
             elementos.modais.lancamentoBody.appendChild(div);
             div.querySelectorAll('.campo-quantidade, .campo-valor').forEach(el => el.addEventListener('input', calcularTotal));
         }
-        
+
         function salvarDadosDoModal() {
             setLoadingState(true, "Salvando...");
             const { idEditado } = elementos.modais.lancamento.dataset;
@@ -383,7 +438,7 @@
                 const tipo = linha.dataset.tipo || elementos.modais.lancamento.dataset.tipo;
                 const id = linha.dataset.id || idEditado;
                 const itemExtraido = extrairDadosDaLinha(linha, tipo);
-                
+
                 if (!itemExtraido) { hasError = true; break; }
 
                 if (id) {
@@ -395,7 +450,7 @@
                     dadosParaEnviar[tipo + 's'].push(itemExtraido);
                 }
             }
-            
+
             if (hasError) { setLoadingState(false); return; }
             elementos.modais.lancamento.style.display = 'none';
             enviarDadosParaServidor(dadosParaEnviar, 'Lançamento(s) salvo(s) com sucesso!');
@@ -426,7 +481,7 @@
             dados.vendas.forEach(v => { v.data = new Date(v.data).toISOString(); delete v.tipo; });
             dados.gastos.forEach(g => { g.data = new Date(g.data).toISOString(); delete g.tipo; });
             google.script.run.withSuccessHandler(res => {
-                if (res.sucesso) { carregarDadosDoFuncionario(); showToast(msgSucesso, 'success'); } 
+                if (res.sucesso) { carregarDadosDoFuncionario(); showToast(msgSucesso, 'success'); }
                 else { setLoadingState(false); showToast('Erro ao salvar: ' + res.erro, 'error'); }
             }).salvarLancamentos(authToken, funcionarioSelecionado, dados);
         }
@@ -439,10 +494,10 @@
             btnConfirmar.parentNode.replaceChild(novoBtn, btnConfirmar);
             novoBtn.addEventListener('click', () => { elementos.modais.confirm.style.display = 'none'; callback(); });
         }
-        
+
         function setLoadingState(isLoading, message = "Carregando...") { document.querySelectorAll('button, select, input').forEach(el => el.disabled = isLoading); if (isLoading) { document.getElementById('container-vendas').innerHTML = `<div class="tabela-carregando">${message}</div>`; document.getElementById('container-gastos').innerHTML = ``; } else { document.querySelectorAll('button, select, input').forEach(el => el.disabled = false); } }
         function showToast(message, type = 'success') { const toast = document.getElementById('toast-notification'); toast.textContent = message; toast.className = 'show ' + type; setTimeout(() => { toast.className = toast.className.replace('show', ''); }, 3000); }
-        
+
         function calcularTotal(event) {
             const linha = event.target.closest('.modal-linha-form');
             const qtd = parseFloat(linha.querySelector('.campo-quantidade').value) || 0;
@@ -461,10 +516,33 @@
 
         function formatarData(data) { return data ? data.toLocaleDateString('pt-BR', {timeZone: 'UTC'}) : ''; }
         function formatarDataParaInput(data) { const d = data ? new Date(data) : new Date(); const dLocal = new Date(d.valueOf() + d.getTimezoneOffset() * 60000); return dLocal.toISOString().split('T')[0]; }
-        
+
         function formatarMoeda(valor) { if (isNaN(valor) || valor === null) return ''; return valor.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}); }
         function parseMoeda(valorString) { if (!valorString || typeof valorString !== 'string') return 0; const numero = parseFloat(valorString.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()); return isNaN(numero) ? 0 : numero; }
         function formatarInputComoMoeda(event) { const input = event.target; let valor = input.value.replace(/\D/g, ''); if (valor === '') { input.value = ''; return; } valor = (parseInt(valor, 10) / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); input.value = valor; }
     </script>
-</body>
+
+    <div id="aviso-licenca" style="display: none; position: fixed; bottom: 20px; left: 20px; color: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 9999; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+        <strong>Aviso Importante:</strong>
+        <p id="aviso-licenca-texto" style="margin: 5px 0 0 0;"></p>
+    </div>
+
+    <div id="vencido-overlay">...</div>
+      <div id="aviso-a-vencer">...</div>
+<script>
+(function() {
+    // Esta variável especial é preenchida pelo Code.gs
+    const statusVencimento = '<?= statusVencimento ?>';
+
+    const avisoAVencer = document.getElementById('aviso-a-vencer');
+    const overlayVencido = document.getElementById('vencido-overlay');
+
+    if (statusVencimento === 'VENCIDO') {
+        if (overlayVencido) overlayVencido.style.display = 'flex';
+    } else if (statusVencimento === 'A VENCER') {
+        if (avisoAVencer) avisoAVencer.style.display = 'block';
+    }
+})();
+</script>
+    </body>
 </html>

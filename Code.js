@@ -1,22 +1,66 @@
 // =================================================================
-// ARQUIVO PRINCIPAL DO SERVIDOR - Code.gs (VERSÃO FINAL CORRIGIDA)
+// ARQUIVO PRINCIPAL DO SERVIDOR - Code.gs (VERSÃO 100% COMPLETA)
 // =================================================================
 
 const NOME_ABA_USUARIOS = "Usuarios";
 const NOME_ABA_DADOS = "DADOS";
 const NOME_ABA_MODELO = "MODELO";
 
+/**
+ * VERIFICA A AUTENTICAÇÃO E OBTÉM O STATUS DE VENCIMENTO GLOBAL DO CLIENTE.
+ * Esta versão lê o status de um local fixo (célula G2), aplicando-o a todos
+ * os usuários da planilha.
+ */
+function verificarAutenticacaoEObterInfo(token) {
+  if (!token) return { autenticado: false };
+
+  const email = CacheService.getScriptCache().get(token);
+  if (!email) return { autenticado: false };
+
+  try {
+    const abaUsuarios = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Usuarios");
+
+    // Passo 1: Autentica se o usuário que está logando ainda existe na lista da planilha.
+    // Isso é uma boa prática de segurança.
+    const emailsNaPlanilha = abaUsuarios.getRange(2, 1, abaUsuarios.getLastRow() - 1, 1).getValues().flat();
+    const usuarioValido = emailsNaPlanilha.some(e => String(e).toLowerCase() === email);
+
+    if (!usuarioValido) {
+      Logger.log(`Tentativa de login falhou: o email ${email} não foi encontrado na lista de usuários.`);
+      return { autenticado: false }; // Usuário não está mais na lista, nega o acesso.
+    }
+
+    // Passo 2: Lê o status de vencimento de um local FIXO (célula G2).
+    // Este status agora se aplica a TODOS os usuários desta planilha/cliente.
+    const statusVencimento = abaUsuarios.getRange("G2").getValue();
+    
+    Logger.log(`DIAGNÓSTICO GLOBAL: O status para ESTE CLIENTE (lido de G2) é: [${statusVencimento}]`);
+
+    return {
+      autenticado: true,
+      statusVencimento: statusVencimento
+    };
+
+  } catch (e) {
+    Logger.log("Erro ao buscar status de vencimento: " + e.message);
+    // Em caso de erro, permite o acesso mas sem status, para não travar o cliente por um erro de planilha.
+    return { autenticado: true, statusVencimento: null };
+  }
+}
+
 // =================================================================
-// ROTEAMENTO E SERVIÇO DE PÁGINAS HTML (COM AUTENTICAÇÃO)
+// ROTEAMENTO E SERVIÇO DE PÁGINAS HTML (COM AUTENTICAÇÃO ATUALIZADA)
 // =================================================================
 function doGet(e) {
-  const page = e.parameter.page || 'BoasVindas'; 
+  const page = e.parameter.page || 'BoasVindas';
   const authToken = e.parameter.authToken;
   const paginasPublicas = ['login', 'register', 'forgot', 'reset'];
 
-  // Se a página NÃO é pública E o token é inválido, redireciona para o login
-  if (!paginasPublicas.includes(page) && !isTokenValido(authToken)) {
-    return HtmlService.createTemplateFromFile('Login.html') 
+  const authInfo = verificarAutenticacaoEObterInfo(authToken);
+
+  // Se a página NÃO é pública E o usuário não está autenticado, redireciona para o login
+  if (!paginasPublicas.includes(page) && !authInfo.autenticado) {
+    return HtmlService.createTemplateFromFile('Login.html')
       .evaluate()
       .setTitle("Sistemas ARK")
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
@@ -50,16 +94,17 @@ function doGet(e) {
       template = HtmlService.createTemplateFromFile('ResetPassword.html');
       template.token = e.parameter.token || ''; // Este é o token de reset, não de sessão
       break;
-    default: 
+    default:
       template = HtmlService.createTemplateFromFile('BoasVindas.html');
       break;
   }
-  
-  // Passa o token de autenticação para TODAS as páginas protegidas
-  if (authToken) {
+
+  // Passa as informações de autenticação e licença para TODAS as páginas protegidas
+  if (authInfo.autenticado) {
     template.authToken = authToken;
+    template.statusVencimento = authInfo.statusVencimento;
   }
-  
+
   return template.evaluate()
     .setTitle("Sistemas ARK")
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
