@@ -17,7 +17,7 @@
         --cor-borda: #ccc;
         --cor-input-fundo: #fff;
         --sombra-card: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
-        --cor-grafico-texto: #666;
+        --cor-grafico-texto: '#666';
         --cor-grafico-borda: '#efefef';
       }
 
@@ -178,7 +178,7 @@
     </nav>
 
     <script>
-        const authToken = '<?= authToken ?>'; 
+        const authToken = '<?= authToken ?>';
         function navigateToNavbar(page) {
             const baseUrl = '<?= getScriptUrl() ?>';
             window.top.location.href = baseUrl + "?page=" + page + "&authToken=" + authToken;
@@ -220,7 +220,7 @@
           <div class="filtros-grid">
             <div class="filtro-item" id="filtro-produto"><label for="produtoFiltro">Produto</label><select id="produtoFiltro"></select></div>
             <div class="filtro-item" id="filtro-comprador"><label for="compradorFiltro">Comprador</label><select id="compradorFiltro"></select></div>
-            <div class="filtro-item" id="filtro-insumo"><label for="insumoFiltro">Insumo</label><select id="insumoFiltro"></select></div>
+            <div class="filtro-item" id="filtro-compra"><label for="compraFiltro">Compra</label><select id="compraFiltro"></select></div>
             <div class="filtro-item" id="filtro-fornecedor"><label for="fornecedorFiltro">Fornecedor</label><select id="fornecedorFiltro"></select></div>
             <div class="filtro-item" id="filtro-status"><label for="statusFiltro">Status</label><select id="statusFiltro"></select></div>
             <div class="filtro-item"><label>&nbsp;</label><button id="gerarPdfBtn">Gerar Fechamento</button></div>
@@ -261,11 +261,7 @@
         let dadosFiltrados = [];
         let charts = {};
         let tipoDeVisualizacao = 'GERAL';
-        let todosOsProdutosGlobais = [];
-        let todosOsInsumosGlobais = [];
-        let todosOsCompradoresGlobais = [];
-        let todosOsFornecedoresGlobais = [];
-        let todosOsStatusGlobais = [];
+        let todosOsProdutosGlobais = [], todosOsComprasGlobais = [], todosOsCompradoresGlobais = [], todosOsFornecedoresGlobais = [], todosOsStatusGlobais = [];
 
         function iniciarDashboard() {
             document.querySelectorAll('select, input[type=date]').forEach(el => el.addEventListener('change', atualizarDashboard));
@@ -296,13 +292,13 @@
             popularDropdown('funcSelect', dadosIniciais.funcionarios, 'Todos os Funcionários');
             
             todosOsProdutosGlobais = dadosIniciais.produtos;
-            todosOsInsumosGlobais = dadosIniciais.insumos;
+            todosOsComprasGlobais = dadosIniciais.compras;
             todosOsCompradoresGlobais = dadosIniciais.compradores;
             todosOsFornecedoresGlobais = dadosIniciais.fornecedores;
             todosOsStatusGlobais = [...new Set(dadosIniciais.status)];
             
             popularDropdown('produtoFiltro', todosOsProdutosGlobais, 'Todos os Produtos');
-            popularDropdown('insumoFiltro', todosOsInsumosGlobais, 'Todos os Insumos');
+            popularDropdown('compraFiltro', todosOsComprasGlobais, 'Todas as Compras');
             popularDropdown('compradorFiltro', todosOsCompradoresGlobais, 'Todos os Compradores');
             popularDropdown('fornecedorFiltro', todosOsFornecedoresGlobais, 'Todos os Fornecedores');
             popularDropdown('statusFiltro', todosOsStatusGlobais, 'Todos os Status');
@@ -322,16 +318,16 @@
             const select = document.getElementById(elementId);
             const valorAntigo = select.value;
             select.innerHTML = `<option value="TODOS">${opcaoTodos}</option>`;
-            lista.sort((a, b) => String(a).localeCompare(String(b))).forEach(item => {
+            (lista || []).sort((a, b) => String(a).localeCompare(String(b))).forEach(item => {
                 if(item) select.innerHTML += `<option value="${item}">${item}</option>`;
             });
-            select.value = lista.includes(valorAntigo) ? valorAntigo : 'TODOS';
+            select.value = lista && lista.includes(valorAntigo) ? valorAntigo : 'TODOS';
         }
         
         function gerenciarVisibilidadeFiltros() {
             document.getElementById('filtro-produto').style.display = (tipoDeVisualizacao === 'GASTOS') ? 'none' : 'flex';
             document.getElementById('filtro-comprador').style.display = (tipoDeVisualizacao === 'GASTOS') ? 'none' : 'flex';
-            document.getElementById('filtro-insumo').style.display = (tipoDeVisualizacao === 'VENDAS') ? 'none' : 'flex';
+            document.getElementById('filtro-compra').style.display = (tipoDeVisualizacao === 'VENDAS') ? 'none' : 'flex';
             document.getElementById('filtro-fornecedor').style.display = (tipoDeVisualizacao === 'VENDAS') ? 'none' : 'flex';
         }
 
@@ -340,12 +336,12 @@
             let dadosBase = (funcFiltro === 'TODOS') ? todosOsDados : todosOsDados.filter(d => d.funcionario === funcFiltro);
             
             let produtos = [...new Set(dadosBase.filter(d => d.tipo === 'venda' && d.produto).map(d => d.produto))];
-            let insumos = [...new Set(dadosBase.filter(d => d.tipo === 'gasto' && d.insumo).map(d => d.insumo))];
+            let compras = [...new Set(dadosBase.filter(d => d.tipo === 'gasto' && d.compra).map(d => d.compra))];
             let compradores = [...new Set(dadosBase.filter(d => d.tipo === 'venda' && d.comprador).map(d => d.comprador))];
             let fornecedores = [...new Set(dadosBase.filter(d => d.tipo === 'gasto' && d.fornecedor).map(d => d.fornecedor))];
             
             popularDropdown('produtoFiltro', produtos, 'Todos os Produtos');
-            popularDropdown('insumoFiltro', insumos, 'Todos os Insumos');
+            popularDropdown('compraFiltro', compras, 'Todas as Compras');
             popularDropdown('compradorFiltro', compradores, 'Todos os Compradores');
             popularDropdown('fornecedorFiltro', fornecedores, 'Todos os Fornecedores');
         }
@@ -364,7 +360,7 @@
             const inicioFiltro = document.getElementById('dataInicio').value ? new Date(document.getElementById('dataInicio').value + 'T00:00:00Z') : null;
             const fimFiltro = document.getElementById('dataFim').value ? new Date(document.getElementById('dataFim').value + 'T23:59:59Z') : null;
             const produtoFiltro = document.getElementById('produtoFiltro').value;
-            const insumoFiltro = document.getElementById('insumoFiltro').value;
+            const compraFiltro = document.getElementById('compraFiltro').value;
             const compFiltro = document.getElementById('compradorFiltro').value;
             const fornecedorFiltro = document.getElementById('fornecedorFiltro').value;
             const statusFiltro = document.getElementById('statusFiltro').value;
@@ -379,7 +375,7 @@
                 if (produtoFiltro !== 'TODOS' && d.produto !== produtoFiltro) return false;
                 if (compFiltro !== 'TODOS' && d.comprador !== compFiltro) return false;
               } else if (d.tipo === 'gasto') {
-                if (insumoFiltro !== 'TODOS' && d.insumo !== insumoFiltro) return false;
+                if (compraFiltro !== 'TODOS' && d.compra !== compraFiltro) return false;
                 if (fornecedorFiltro !== 'TODOS' && d.fornecedor !== fornecedorFiltro) return false;
               }
               if (statusFiltro !== 'TODOS' && d.status !== statusFiltro) return false;
@@ -402,7 +398,7 @@
 
         function atualizarGraficos(dados) {
             const vendasPorProduto = {};
-            const gastosPorInsumo = {}; 
+            const gastosPorCompra = {}; 
             const statusCount = {};
 
             let dadosParaGraficos = dados;
@@ -411,7 +407,7 @@
 
             dadosParaGraficos.forEach(d => {
                 if (d.tipo === 'venda' && d.produto) vendasPorProduto[d.produto] = (vendasPorProduto[d.produto] || 0) + (Number(d.valorTotal) || 0);
-                if (d.tipo === 'gasto' && d.insumo) gastosPorInsumo[d.insumo] = (gastosPorInsumo[d.insumo] || 0) + (Number(d.valorTotal) || 0);
+                if (d.tipo === 'gasto' && d.compra) gastosPorCompra[d.compra] = (gastosPorCompra[d.compra] || 0) + (Number(d.valorTotal) || 0);
                 if (d.status) statusCount[d.status] = (statusCount[d.status] || 0) + 1;
             });
 
@@ -421,9 +417,9 @@
               primaryChartData = Object.values(vendasPorProduto);
               primaryChartTitle = 'Vendas por Produto';
             } else if (tipoDeVisualizacao === 'GASTOS') {
-              primaryChartLabels = Object.keys(gastosPorInsumo);
-              primaryChartData = Object.values(gastosPorInumo);
-              primaryChartTitle = 'Gastos por Insumo';
+              primaryChartLabels = Object.keys(gastosPorCompra);
+              primaryChartData = Object.values(gastosPorCompra);
+              primaryChartTitle = 'Gastos por Compra';
             } else { 
               primaryChartLabels = Object.keys(vendasPorProduto); 
               primaryChartData = Object.values(vendasPorProduto);
@@ -464,7 +460,6 @@
                 }
             };
             
-            // Para gráficos de pizza/rosca, não há eixos X/Y
             if (tipo === 'doughnut' || tipo === 'pie') {
                 delete chartOptions.scales;
             }
@@ -481,7 +476,11 @@
             }
             const nomeFuncionario = document.getElementById('funcSelect').value;
             const nomeComprador = document.getElementById('compradorFiltro').value; 
+            const nomeFornecedor = document.getElementById('fornecedorFiltro').value;
             const nomeCliente = document.querySelector('.container > header h1').textContent;
+            const dataInicio = document.getElementById('dataInicio').value;
+            const dataFim = document.getElementById('dataFim').value;
+
             const dadosParaEnviar = dadosFiltrados.map(d => ({...d, data: d.data.toISOString()}));
 
             document.getElementById('gerarPdfBtn').disabled = true;
@@ -500,7 +499,7 @@
                     document.getElementById('gerarPdfBtn').disabled = false;
                     document.getElementById('gerarPdfBtn').textContent = 'Gerar Fechamento';
                 })
-                .gerarPaginaDeFechamento(authToken, dadosParaEnviar, nomeFuncionario, nomeComprador, tipoDeVisualizacao, nomeCliente); 
+                .gerarPaginaDeFechamento(authToken, dadosParaEnviar, nomeFuncionario, nomeComprador, nomeFornecedor, tipoDeVisualizacao, nomeCliente, dataInicio, dataFim); 
         }
     </script>
     
@@ -516,7 +515,6 @@
     </div>
 
     <script>
-    // Script de Gerenciamento do Tema (Dark Mode)
     (function() {
         const themeToggle = document.getElementById('theme-toggle');
         const body = document.body;
@@ -524,29 +522,29 @@
         const applyTheme = (theme) => {
             if (theme === 'dark') {
                 body.classList.add('dark-mode');
-                themeToggle.textContent = '☀️';
+                if(themeToggle) themeToggle.textContent = '☀️';
             } else {
                 body.classList.remove('dark-mode');
-                themeToggle.textContent = '🌙';
+                if(themeToggle) themeToggle.textContent = '🌙';
             }
-            // Atualiza os gráficos quando o tema muda
             if (typeof atualizarDashboard === 'function') {
               atualizarDashboard();
             }
         };
 
-        themeToggle.addEventListener('click', () => {
-            const isDarkMode = body.classList.contains('dark-mode');
-            const newTheme = isDarkMode ? 'light' : 'dark';
-            localStorage.setItem('theme', newTheme);
-            applyTheme(newTheme);
-        });
-
+        if (themeToggle){
+            themeToggle.addEventListener('click', () => {
+                const isDarkMode = body.classList.contains('dark-mode');
+                const newTheme = isDarkMode ? 'light' : 'dark';
+                localStorage.setItem('theme', newTheme);
+                applyTheme(newTheme);
+            });
+        }
+        
         const savedTheme = localStorage.getItem('theme') || 'light';
         applyTheme(savedTheme);
     })();
     
-    // Script de Verificação de Vencimento
     (function() {
         const statusVencimento = '<?= statusVencimento ?>';
         const avisoAVencer = document.getElementById('aviso-a-vencer');

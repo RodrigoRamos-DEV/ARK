@@ -176,7 +176,7 @@
   <strong>Aviso de Vencimento</strong>
   <p>Sua licença está próxima do vencimento. Contate o suporte para renovação e evitar o bloqueio do sistema.</p>
 </div>
-    <script>
+      <script>
         const authToken = '<?= authToken ?>';
         function navigateToNavbar(page) {
             const baseUrl = '<?= getScriptUrl() ?>';
@@ -209,7 +209,7 @@
                     <div><label for="filtro-data-fim">Até</label><input type="date" id="filtro-data-fim"></div>
                     <div><label for="filtro-produto">Produto</label><select id="filtro-produto"></select></div>
                     <div><label for="filtro-comprador">Comprador</label><select id="filtro-comprador"></select></div>
-                    <div><label for="filtro-insumo">Insumo</label><select id="filtro-insumo"></select></div>
+                    <div><label for="filtro-compra">Compra</label><select id="filtro-compra"></select></div>
                     <div><label for="filtro-fornecedor">Fornecedor</label><select id="filtro-fornecedor"></select></div>
                     <div><label for="filtro-status">Status</label><select id="filtro-status">
                         <option value="TODOS">Todos</option>
@@ -237,7 +237,7 @@
     </div>
 
     <datalist id="datalist-produtos"></datalist>
-    <datalist id="datalist-insumos"></datalist>
+    <datalist id="datalist-compras"></datalist>
     <datalist id="datalist-fornecedores"></datalist>
 
     <div class="modal-overlay" id="lancamento-modal"> <div class="modal-box"> <h2 id="modal-titulo">Novo Lançamento</h2> <div class="modal-body" id="modal-body"></div> <div class="modal-footer"> <button class="btn" id="btn-add-linha">Adicionar Linha</button><div><button id="btn-cancelar-modal" class="btn btn-secundario">Cancelar</button><button id="btn-salvar-modal" class="btn btn-success">Salvar</button></div></div></div></div>
@@ -245,7 +245,6 @@
     <div id="toast-notification"></div>
 
     <script>
-        // Bloco de script principal de Lançamentos, incluindo a versão final que funciona
         let dadosCadastro = {};
         let lancamentosAtuais = { vendas: [], gastos: [] };
         let funcionarioSelecionado = '';
@@ -256,10 +255,10 @@
         const elementos = {
             funcSelect: document.getElementById('func-select'),
             areaLancamentos: document.getElementById('area-lancamentos'),
-            filtros: { dataInicio: document.getElementById('filtro-data-inicio'), dataFim: document.getElementById('filtro-data-fim'), produto: document.getElementById('filtro-produto'), comprador: document.getElementById('filtro-comprador'), insumo: document.getElementById('filtro-insumo'), fornecedor: document.getElementById('filtro-fornecedor'), status: document.getElementById('filtro-status') },
+            filtros: { dataInicio: document.getElementById('filtro-data-inicio'), dataFim: document.getElementById('filtro-data-fim'), produto: document.getElementById('filtro-produto'), comprador: document.getElementById('filtro-comprador'), compra: document.getElementById('filtro-compra'), fornecedor: document.getElementById('filtro-fornecedor'), status: document.getElementById('filtro-status') },
             modais: { lancamento: document.getElementById('lancamento-modal'), lancamentoTitulo: document.getElementById('modal-titulo'), lancamentoBody: document.getElementById('modal-body'), confirm: document.getElementById('confirm-modal'), confirmText: document.getElementById('confirm-modal-texto') },
             botoes: { acaoMassa: document.getElementById('botoes-acao-massa') },
-            datalists: { produtos: document.getElementById('datalist-produtos'), insumos: document.getElementById('datalist-insumos'), fornecedores: document.getElementById('datalist-fornecedores') }
+            datalists: { produtos: document.getElementById('datalist-produtos'), compras: document.getElementById('datalist-compras'), fornecedores: document.getElementById('datalist-fornecedores') }
         };
 
         window.addEventListener('load', () => {
@@ -288,7 +287,7 @@
                 if (!dados.erro) {
                     dadosCadastro = dados;
                     preencherDatalist(elementos.datalists.produtos, dados.produtos);
-                    preencherDatalist(elementos.datalists.insumos, dados.insumos);
+                    preencherDatalist(elementos.datalists.compras, dados.compras);
                     preencherDatalist(elementos.datalists.fornecedores, dados.fornecedores);
                 } else {
                     showToast('Erro: ' + dados.erro, 'error');
@@ -349,12 +348,12 @@
             
             popularSelect(elementos.filtros.produto, lancamentosAtuais.vendas.map(v => v.produto));
             popularSelect(elementos.filtros.comprador, lancamentosAtuais.vendas.map(v => v.comprador));
-            popularSelect(elementos.filtros.insumo, lancamentosAtuais.gastos.map(g => g.insumo));
+            popularSelect(elementos.filtros.compra, lancamentosAtuais.gastos.map(g => g.compra));
             popularSelect(elementos.filtros.fornecedor, lancamentosAtuais.gastos.map(g => g.fornecedor));
         }
 
         function aplicarFiltrosErenderizar() {
-            const { dataInicio, dataFim, produto, comprador, insumo, fornecedor, status } = elementos.filtros;
+            const { dataInicio, dataFim, produto, comprador, compra, fornecedor, status } = elementos.filtros;
             const dtInicio = dataInicio.value ? new Date(dataInicio.value + 'T00:00:00Z') : null;
             const dtFim = dataFim.value ? new Date(dataFim.value + 'T23:59:59Z') : null;
             const statusFiltro = status.value;
@@ -373,7 +372,7 @@
             );
             const gastosFiltrados = lancamentosAtuais.gastos.filter(g => 
                 filtroBase(g) && 
-                (insumo.value == 'TODOS' || g.insumo == insumo.value) && 
+                (compra.value == 'TODOS' || g.compra == compra.value) && 
                 (fornecedor.value == 'TODOS' || g.fornecedor == fornecedor.value)
             );
 
@@ -413,13 +412,13 @@
                 return; 
             }
 
-            const cabecalhosBase = tipo === 'venda' ? ['Data', 'Qtd', 'Produto', 'Comprador', 'Valor', 'Total', 'Status', 'Ações'] : ['Data', 'Fornecedor', 'Qtd', 'Insumo', 'Valor', 'Total', 'Status', 'Ações'];
+            const cabecalhosBase = tipo === 'venda' ? ['Data', 'Qtd', 'Produto', 'Comprador', 'Valor', 'Total', 'Status', 'Ações'] : ['Data', 'Fornecedor', 'Qtd', 'Compra', 'Valor', 'Total', 'Status', 'Ações'];
             const cabecalhos = [`<input type="checkbox" onchange="selecionarTodos(this, '${tipo}')">`, ...cabecalhosBase];
             let html = `<table><thead><tr><th>${cabecalhos.join('</th><th>')}</th></tr></thead><tbody>`;
 
             dadosPaginados.forEach(item => {
                 const linha = tipo === 'venda' ? `<td>${formatarData(item.data)}</td><td>${item.quantidade}</td><td>${item.produto}</td><td>${item.comprador}</td><td>${formatarMoeda(item.valor)}</td><td>${formatarMoeda(item.valorTotal)}</td><td>${item.status}</td>`
-                    : `<td>${formatarData(item.data)}</td><td>${item.fornecedor || ''}</td><td>${item.quantidade}</td><td>${item.insumo}</td><td>${formatarMoeda(item.valor)}</td><td>${formatarMoeda(item.valorTotal)}</td><td>${item.status}</td>`;
+                    : `<td>${formatarData(item.data)}</td><td>${item.fornecedor || ''}</td><td>${item.quantidade}</td><td>${item.compra}</td><td>${formatarMoeda(item.valor)}</td><td>${formatarMoeda(item.valorTotal)}</td><td>${item.status}</td>`;
                 html += `<tr><td><input type="checkbox" class="checkbox-item" data-id="${item.id}" onchange="verificarSelecao()"></td>${linha}<td class="td-acoes"><button onclick="editarLancamento('${tipo}', '${item.id}')">✏️</button><button onclick="excluirLancamento('${tipo}', '${item.id}')">🗑️</button></td></tr>`;
             });
             containerEl.innerHTML = html + '</tbody></table>';
@@ -428,11 +427,7 @@
                 if (dados.length > ITEMS_PER_PAGE) {
                     const btnAnteriorDisabled = paginaAtual === 1 ? 'disabled' : '';
                     const btnProximaDisabled = paginaAtual === totalPages ? 'disabled' : '';
-                    paginacaoContainerEl.innerHTML = `
-                        <button class="btn btn-secundario" onclick="mudarPagina('${tipo}', -1)" ${btnAnteriorDisabled}>Anterior</button>
-                        <span>Página ${paginaAtual} de ${totalPages}</span>
-                        <button class="btn btn-secundario" onclick="mudarPagina('${tipo}', 1)" ${btnProximaDisabled}>Próxima</button>
-                    `;
+                    paginacaoContainerEl.innerHTML = `<button class="btn btn-secundario" onclick="mudarPagina('${tipo}', -1)" ${btnAnteriorDisabled}>Anterior</button> <span>Página ${paginaAtual} de ${totalPages}</span> <button class="btn btn-secundario" onclick="mudarPagina('${tipo}', 1)" ${btnProximaDisabled}>Próxima</button>`;
                 } else {
                     paginacaoContainerEl.innerHTML = '';
                 }
@@ -443,11 +438,7 @@
             const colecao = (tipo === 'venda') ? lancamentosAtuais.vendas : lancamentosAtuais.gastos;
             if (!colecao || colecao.length === 0) return null;
 
-            const correspondencias = colecao.filter(item => {
-                return Object.keys(criterios).every(chave => {
-                    return item[chave] && criterios[chave] && String(item[chave]).toLowerCase() == String(criterios[chave]).toLowerCase();
-                });
-            });
+            const correspondencias = colecao.filter(item => Object.keys(criterios).every(chave => item[chave] && criterios[chave] && String(item[chave]).toLowerCase() == String(criterios[chave]).toLowerCase()));
 
             if (correspondencias.length === 0) return null;
 
@@ -461,7 +452,7 @@
             if (isBulkEdit || dados.id) { div.dataset.id = dados.id; div.dataset.tipo = tipo; }
 
             const campoProduto = `<input type="text" list="datalist-produtos" class="campo-produto" placeholder="Digite o produto" value="${dados.produto || ''}">`;
-            const campoInsumo = `<input type="text" list="datalist-insumos" class="campo-insumo" placeholder="Digite o insumo" value="${dados.insumo || ''}">`;
+            const campoCompra = `<input type="text" list="datalist-compras" class="campo-compra" placeholder="Digite a compra" value="${dados.compra || ''}">`;
             const campoFornecedor = `<input type="text" list="datalist-fornecedores" class="campo-fornecedor" placeholder="Digite o fornecedor" value="${dados.fornecedor || ''}">`;
             const selects = {
                 comprador: criarSelect(dadosCadastro.compradores || [], dados.comprador, 'campo-comprador'),
@@ -469,7 +460,7 @@
             };
             const campoValor = `<input type="text" inputmode="decimal" class="campo-valor" oninput="formatarInputComoMoeda(event)" placeholder="R$ 0,00" value="${dados.valor ? formatarMoeda(dados.valor) : ''}">`;
             const camposHtml = tipo === 'venda' ? `<input type="date" class="campo-data" value="${formatarDataParaInput(dados.data)}"><input type="number" placeholder="Qtd" class="campo-quantidade" value="${dados.quantidade || ''}">${campoProduto}${selects.comprador.outerHTML}${campoValor}<input type="text" placeholder="Total" class="campo-valor-total" disabled value="${dados.valorTotal ? formatarMoeda(dados.valorTotal) : ''}">${selects.status.outerHTML}`
-                : `<input type="date" class="campo-data" value="${formatarDataParaInput(dados.data)}">${campoFornecedor}<input type="number" placeholder="Qtd" class="campo-quantidade" value="${dados.quantidade || ''}">${campoInsumo}${campoValor}<input type="text" placeholder="Total" class="campo-valor-total" disabled value="${dados.valorTotal ? formatarMoeda(dados.valorTotal) : ''}">${selects.status.outerHTML}`;
+                : `<input type="date" class="campo-data" value="${formatarDataParaInput(dados.data)}">${campoFornecedor}<input type="number" placeholder="Qtd" class="campo-quantidade" value="${dados.quantidade || ''}">${campoCompra}${campoValor}<input type="text" placeholder="Total" class="campo-valor-total" disabled value="${dados.valorTotal ? formatarMoeda(dados.valorTotal) : ''}">${selects.status.outerHTML}`;
 
             const displayBotaoRemover = (elementos.modais.lancamento.dataset.mode === 'single' && !elementos.modais.lancamento.dataset.idEditado);
             div.innerHTML = camposHtml + `<button class="btn btn-danger btn-remover-linha" style="display:${displayBotaoRemover ? 'block' : 'none'}" onclick="this.parentElement.remove()">X</button>`;
@@ -478,22 +469,16 @@
 
             const valorInput = div.querySelector('.campo-valor');
             const buscarEPreencherPreco = () => {
-                if (valorInput.value.trim() !== '' && parseMoeda(valorInput.value) > 0) {
-                    return;
-                }
+                if (valorInput.value.trim() !== '' && parseMoeda(valorInput.value) > 0) return;
                 let precoEncontrado = null;
                 if (tipo === 'venda') {
                     const produto = div.querySelector('.campo-produto').value;
                     const comprador = div.querySelector('.campo-comprador').value;
-                    if (produto && comprador) {
-                        precoEncontrado = encontrarUltimoPreco('venda', { produto, comprador });
-                    }
+                    if (produto && comprador) precoEncontrado = encontrarUltimoPreco('venda', { produto, comprador });
                 } else {
-                    const insumo = div.querySelector('.campo-insumo').value;
+                    const compra = div.querySelector('.campo-compra').value;
                     const fornecedor = div.querySelector('.campo-fornecedor').value;
-                    if (insumo && fornecedor) {
-                        precoEncontrado = encontrarUltimoPreco('gasto', { insumo, fornecedor });
-                    }
+                    if (compra && fornecedor) precoEncontrado = encontrarUltimoPreco('gasto', { compra, fornecedor });
                 }
                 if (precoEncontrado !== null) {
                     valorInput.value = formatarMoeda(precoEncontrado);
@@ -505,7 +490,7 @@
                 div.querySelector('.campo-produto').addEventListener('change', buscarEPreencherPreco);
                 div.querySelector('.campo-comprador').addEventListener('change', buscarEPreencherPreco);
             } else {
-                div.querySelector('.campo-insumo').addEventListener('change', buscarEPreencherPreco);
+                div.querySelector('.campo-compra').addEventListener('change', buscarEPreencherPreco);
                 div.querySelector('.campo-fornecedor').addEventListener('change', buscarEPreencherPreco);
             }
         }
@@ -553,7 +538,7 @@
             }
             if (gastosSelecionados.length > 0) {
                 lancamentoBody.innerHTML += `<h3 class="modal-bulk-edit-divider">Gastos</h3>`;
-                const headers = `<label class="header-data">Data</label><label>Fornecedor</label><label>Qtd</label><label>Insumo</label><label>Valor Unitário</label><label>Total</label><label>Status</label>`;
+                const headers = `<label class="header-data">Data</label><label>Fornecedor</label><label>Qtd</label><label>Compra</label><label>Valor Unitário</label><label>Total</label><label>Status</label>`;
                 lancamentoBody.innerHTML += `<div class="modal-linha-header">${headers}</div>`;
                 gastosSelecionados.forEach(item => adicionarLinhaNoModal('gasto', item, true));
             }
@@ -567,7 +552,7 @@
             lancamento.style.display = 'flex';
             lancamento.dataset.mode = 'single';
             lancamentoTitulo.textContent = dadosParaEditar ? `Editar Lançamento` : (tipo === 'venda' ? 'Nova Venda' : 'Novo Gasto');
-            const headers = tipo === 'venda' ? `<label class="header-data">Data</label><label>Qtd</label><label>Produto</label><label>Comprador</label><label>Valor Unitário</label><label>Total</label><label>Status</label>` : `<label class="header-data">Data</label><label>Fornecedor</label><label>Qtd</label><label>Insumo</label><label>Valor Unitário</label><label>Total</label><label>Status</label>`;
+            const headers = tipo === 'venda' ? `<label class="header-data">Data</label><label>Qtd</label><label>Produto</label><label>Comprador</label><label>Valor Unitário</label><label>Total</label><label>Status</label>` : `<label class="header-data">Data</label><label>Fornecedor</label><label>Qtd</label><label>Compra</label><label>Valor Unitário</label><label>Total</label><label>Status</label>`;
             lancamentoBody.innerHTML = `<div class="modal-linha-header">${headers}</div>`;
             document.getElementById('btn-add-linha').style.display = dadosParaEditar ? 'none' : 'block';
             adicionarLinhaNoModal(tipo, dadosParaEditar || {});
@@ -609,17 +594,17 @@
             const quantidade = parseFloat(linha.querySelector('.campo-quantidade').value);
             const valor = parseMoeda(linha.querySelector('.campo-valor').value);
             const produto = tipo === 'venda' ? linha.querySelector('.campo-produto').value.trim() : null;
-            const insumo = tipo === 'gasto' ? linha.querySelector('.campo-insumo').value.trim() : null;
+            const compra = tipo === 'gasto' ? linha.querySelector('.campo-compra').value.trim() : null;
             const fornecedor = tipo === 'gasto' ? linha.querySelector('.campo-fornecedor').value.trim() : null;
 
-            if (!dataString || isNaN(quantidade) || !valor || (tipo === 'venda' && !produto) || (tipo === 'gasto' && !insumo)) {
+            if (!dataString || isNaN(quantidade) || !valor || (tipo === 'venda' && !produto) || (tipo === 'gasto' && !compra)) {
                 showToast('Preencha todos os campos obrigatórios.', 'error'); return null;
             }
             const allSelects = linha.querySelectorAll('select');
             return {
                 data: new Date(dataString + 'T00:00:00'),
                 quantidade, valor, valorTotal: quantidade * valor,
-                produto, insumo, fornecedor,
+                produto, compra, fornecedor,
                 comprador: tipo === 'venda' ? allSelects[0].value : null,
                 status: allSelects[allSelects.length - 1].value
             };
@@ -662,7 +647,6 @@
     </script>
 
     <script>
-    // Script de Gerenciamento do Tema (Dark Mode)
     (function() {
         const themeToggle = document.getElementById('theme-toggle');
         const body = document.body;
@@ -690,7 +674,6 @@
         applyTheme(savedTheme);
     })();
     
-    // Script de Verificação de Vencimento
     (function() {
         const statusVencimento = '<?= statusVencimento ?>';
         const avisoAVencer = document.getElementById('aviso-a-vencer');

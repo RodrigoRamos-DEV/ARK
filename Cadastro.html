@@ -5,7 +5,6 @@
     <title>Área de Cadastro</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-      
         :root {
             --cor-primaria: #6d28d9; 
             --cor-destaque: #8b5cf6; 
@@ -153,7 +152,7 @@
         </div>
     </nav>
 
-    <script>
+      <script>
         const authToken = '<?= authToken ?>';
         function navigateToNavbar(page) {
             const baseUrl = '<?= getScriptUrl() ?>';
@@ -176,7 +175,7 @@
         <div class="botoes-gerenciamento">
             <button class="btn-gerenciar" onclick="abrirModalGerenciamento('produto')">Gerenciar Produtos</button>
             <button class="btn-gerenciar" onclick="abrirModalGerenciamento('comprador')">Gerenciar Compradores</button>
-            <button class="btn-gerenciar" onclick="abrirModalGerenciamento('insumo')">Gerenciar Insumos</button>
+            <button class="btn-gerenciar" onclick="abrirModalGerenciamento('compra')">Gerenciar Compras</button>
             <button class="btn-gerenciar" onclick="abrirModalGerenciamento('fornecedor')">Gerenciar Fornecedores</button>
             <button class="btn-gerenciar" onclick="abrirModalGerenciamento('funcionario')">Gerenciar Funcionários</button>
         </div>
@@ -219,7 +218,6 @@
     <div id="toast-notification"></div>
 
     <script>
-        // Script principal da página Cadastro.html
         let dadosGlobais = {};
 
         const elementos = {
@@ -274,7 +272,7 @@
             const titulos = {
                 produto: "Gerenciar Produtos",
                 comprador: "Gerenciar Compradores",
-                insumo: "Gerenciar Insumos",
+                compra: "Gerenciar Compras",
                 fornecedor: "Gerenciar Fornecedores",
                 funcionario: "Gerenciar Funcionários"
             };
@@ -299,7 +297,7 @@
         }
 
         function renderizarModalItens(container, tipo) {
-            const pluralMap = { produto: 'produtos', comprador: 'compradores', insumo: 'insumos', fornecedor: 'fornecedores' };
+            const pluralMap = { produto: 'produtos', comprador: 'compradores', compra: 'compras', fornecedor: 'fornecedores' };
             const tipoPlural = pluralMap[tipo];
             const placeholder = `Nome do novo ${tipo}`;
             const listaItens = dadosGlobais.cadastro[tipoPlural] || [];
@@ -500,7 +498,6 @@
     <div id="vencido-overlay">...</div>
       <div id="aviso-a-vencer">...</div>
 <script>
-    // Script de Gerenciamento do Tema (Dark Mode)
     (function() {
         const themeToggle = document.getElementById('theme-toggle');
         const body = document.body;
@@ -528,7 +525,6 @@
         applyTheme(savedTheme);
     })();
 
-    // Script de Verificação de Vencimento
     (function() {
         const statusVencimento = '<?= statusVencimento ?>';
         const avisoAVencer = document.getElementById('aviso-a-vencer');
