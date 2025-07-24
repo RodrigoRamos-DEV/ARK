@@ -152,15 +152,15 @@
         </div>
     </nav>
 
-      <script>
+    <script>
         const authToken = '<?= authToken ?>';
         function navigateToNavbar(page) {
             const baseUrl = '<?= getScriptUrl() ?>';
-            window.top.location.href = baseUrl + "?page=" + page + "&authToken=" + authToken;
+            window.location.href = baseUrl + "?page=" + page + "&authToken=" + authToken;
         }
         function handleLogoutNavbar() {
             const baseUrl = '<?= getScriptUrl() ?>';
-            window.top.location.href = baseUrl + "?page=login";
+            window.location.href = baseUrl + "?page=login";
         }
     </script>
 
@@ -304,7 +304,8 @@
 
             let html = `<div class="form-add-item"><input type="text" id="input-add-${tipo}" placeholder="${placeholder}"><button class="btn-add" onclick="adicionarItemModal()">Adicionar</button></div><ul class="lista-gerenciamento" id="lista-modal-${tipo}">`;
             if (listaItens.length > 0) {
-                listaItens.sort((a,b) => a.localeCompare(b)).forEach(item => {
+                // AQUI ESTÁ A CORREÇÃO CRÍTICA
+                listaItens.sort((a,b) => String(a).localeCompare(String(b))).forEach(item => {
                     html += `<li><span>${item}</span><div class="item-acoes"><button title="Editar" onclick="editarItem('${tipo}', '${item}')">✏️</button><button title="Excluir" onclick="excluirItem('${tipo}', '${item}')">🗑️</button></div></li>`;
                 });
             } else {

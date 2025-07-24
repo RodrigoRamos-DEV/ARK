@@ -1,5 +1,5 @@
 // =================================================================
-// ARQUIVO PRINCIPAL DO SERVIDOR - Code.gs (VERSÃO COM CORREÇÃO DE SALVAMENTO)
+// ARQUIVO PRINCIPAL DO SERVIDOR - Code.gs (VERSÃO FINAL E CORRIGIDA)
 // =================================================================
 
 const NOME_ABA_USUARIOS = "Usuarios";
@@ -88,7 +88,7 @@ function isTokenValido(token) {
 
 const cache = CacheService.getScriptCache();
 function getFromCache(key) { const cached = cache.get(key); if (cached != null) { return JSON.parse(cached); } return null; }
-function putInCache(key, value, expiration = 600) { cache.put(key, JSON.stringify(value), expiration); }
+function putInCache(key, value, expiration = 600) { try { cache.put(key, JSON.stringify(value), expiration); } catch(e) { Logger.log("Erro de cache (provavelmente argumento grande demais): " + e.message); } }
 
 
 function registrarUsuario(email, senhaHash, token) {
@@ -251,7 +251,6 @@ function getDadosFuncionario(authToken, nomeFuncionario) {
   }
 }
 
-// ESTA É A FUNÇÃO CORRIGIDA
 function salvarLancamentos(authToken, nomeFuncionario, dados) {
   if (!isTokenValido(authToken)) return { sucesso: false, erro: "Acesso não autorizado." };
   try {
@@ -273,22 +272,10 @@ function salvarLancamentos(authToken, nomeFuncionario, dados) {
     for (let i = 0; i < maxLinhas; i++) {
       const linha = new Array(15).fill(null);
       if (vendas[i]) {
-        linha[0] = new Date(vendas[i].data);
-        linha[1] = vendas[i].quantidade || null;
-        linha[2] = vendas[i].produto || null;
-        linha[3] = vendas[i].comprador || null;
-        linha[4] = vendas[i].valor || null;
-        linha[5] = vendas[i].valorTotal || null;
-        linha[6] = vendas[i].status || null;
+        linha[0] = new Date(vendas[i].data); linha[1] = vendas[i].quantidade || null; linha[2] = vendas[i].produto || null; linha[3] = vendas[i].comprador || null; linha[4] = vendas[i].valor || null; linha[5] = vendas[i].valorTotal || null; linha[6] = vendas[i].status || null;
       }
       if (gastos[i]) {
-        linha[8] = new Date(gastos[i].data);
-        linha[9] = gastos[i].quantidade || null;
-        linha[10] = gastos[i].compra || null; // CORRIGIDO DE 'insumo' PARA 'compra'
-        linha[11] = gastos[i].valor || null;
-        linha[12] = gastos[i].valorTotal || null;
-        linha[13] = gastos[i].status || null;
-        linha[14] = gastos[i].fornecedor || null;
+        linha[8] = new Date(gastos[i].data); linha[9] = gastos[i].quantidade || null; linha[10] = gastos[i].compra || null; linha[11] = gastos[i].valor || null; linha[12] = gastos[i].valorTotal || null; linha[13] = gastos[i].status || null; linha[14] = gastos[i].fornecedor || null;
       }
       dadosParaSalvar.push(linha);
     }
@@ -299,7 +286,8 @@ function salvarLancamentos(authToken, nomeFuncionario, dados) {
     cache.remove('dados_iniciais_dashboard');
     return { sucesso: true };
   } catch(e) {
-    return { sucesso: false, erro: e.message };
+    Logger.log("Erro ao salvar: " + e.message + " | Dados: " + JSON.stringify(dados));
+    return { sucesso: false, erro: "Ocorreu um erro ao salvar os dados: " + e.message };
   }
 }
 
@@ -434,9 +422,7 @@ function deletarFuncionario(authToken, nomeFuncionario) {
 
 function getDadosIniciais(authToken) {
   if (!isTokenValido(authToken)) return { erro: "Acesso não autorizado." };
-  const cacheKey = 'dados_iniciais_dashboard';
-  const cachedData = getFromCache(cacheKey);
-  if (cachedData) return cachedData;
+  
   const planilha = SpreadsheetApp.getActiveSpreadsheet();
   const todasAsAbas = planilha.getSheets();
   const transacoes = [];
@@ -448,6 +434,7 @@ function getDadosIniciais(authToken) {
   const fornecedoresSet = new Set(dadosCadastrados.fornecedores || []);
   const statusSet = new Set();
   const abasParaIgnorar = [NOME_ABA_MODELO, NOME_ABA_DADOS, NOME_ABA_USUARIOS];
+
   for (const aba of todasAsAbas) {
     const nomeDaAba = aba.getName().trim(); 
     if (abasParaIgnorar.map(n => n.toUpperCase()).includes(nomeDaAba.toUpperCase()) || aba.getLastRow() <= 1) {
@@ -472,7 +459,7 @@ function getDadosIniciais(authToken) {
     }
   }
   const resultado = { transacoes, funcionarios: [...funcionariosSet], produtos: [...produtosSet], compras: [...comprasSet], compradores: [...compradoresSet], fornecedores: [...fornecedoresSet], status: [...statusSet] };
-  putInCache(cacheKey, resultado);
+  
   return resultado;
 }
 
